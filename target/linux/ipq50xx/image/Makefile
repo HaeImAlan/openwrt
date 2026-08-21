@@ -75,6 +75,25 @@ define Device/redmi_ax3000
 endef
 TARGET_DEVICES += redmi_ax3000
 
+define Device/xiaomi_ax3000e
+  $(call Device/FitImage)
+  $(call Device/UbiFit)
+  SOC := ipq5000
+  DEVICE_VENDOR := Xiaomi
+  DEVICE_MODEL := AX3000E
+  DEVICE_ALT0_VENDOR := Qualcomm
+  DEVICE_ALT0_MODEL := AP-MP03.3
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  DEVICE_DTS_CONFIG := config@mp03.3
+  IMAGES := nand-factory.ubi
+  DEVICE_PACKAGES := \
+        ATH11K_MEM_PROFILE_256M \
+        ath11k-firmware-ipq5018 \
+        ath11k-firmware-qcn6122
+endef
+TARGET_DEVICES += xiaomi_ax3000e
+
 define Device/xiaomi_cr881x
   $(call Device/FitImage)
   $(call Device/UbiFit)
