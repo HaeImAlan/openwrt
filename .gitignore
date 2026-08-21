@@ -30,3 +30,7 @@ git-src
 .cproject
 .ccache
 .vscode
+caldata_*.bin
+bdwlan.*
+target/linux/ipq50xx/base-files/lib/firmware/IPQ5018/board-2.bin
+target/linux/ipq50xx/base-files/lib/firmware/qcn6122/board-2.bin

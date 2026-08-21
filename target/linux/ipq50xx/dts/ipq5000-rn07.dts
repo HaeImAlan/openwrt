@@ -1,0 +1,426 @@
+// SPDX-License-Identifier: (GPL-2.0+)
+
+/dts-v1/;
+
+#include "ipq5018.dtsi"
+
+/ {
+	model = "Xiaomi AX3000E";
+	compatible = "redmi,ax3000", "qcom,ipq5018";
+
+	#address-cells = <2>;
+	#size-cells = <2>;
+	interrupt-parent = <&intc>;
+
+	aliases {
+		serial0 = &blsp1_uart1;
+
+		ethernet0 = &mac0;
+		ethernet1 = &mac1;
+
+		led-boot = &led_system_blue;
+		led-failsafe = &led_system_yellow;
+		led-running = &led_system_blue;
+		led-upgrade = &led_system_yellow;
+	};
+
+	chosen {
+		// Override the root parameter from u-boot
+		bootargs-append = " root=/dev/ubiblock0_1";
+		stdout-path = "serial0:115200n8";
+	};
+
+	reserved-memory {
+		q6_mem_regions: q6_mem_regions@4b000000 {
+			no-map;
+#ifndef CONFIG_ATH11K_MEM_PROFILE_256M
+			reg = <0x0 0x4b000000 0x0 0x3b00000>;
+#else
+			reg = <0x0 0x4b000000 0x0 0x3000000>;
+#endif
+		};
+	};
+
+	thermal-zones {
+		status = "ok";
+	};
+};
+
+&tmc_etr {
+	/delete-property/ memory_region;
+};
+
+&qgic_msi_0 {
+	status = "ok";
+};
+
+&qgic_msi_1 {
+	status = "ok";
+};
+
+&tlmm {
+	blsp_uart0_pins: blsp_uart0_pins {
+            rx {
+                    pins = "gpio21";
+                    function = "blsp0_uart0";
+                    bias-pull-up;
+            };
+            tx {
+                    pins = "gpio20";
+                    function = "blsp0_uart0";
+                    drive-strength = <8>;
+                    bias-disable;
+            };
+    };
+
+	qspi_nand_pins: qspi_nand_pins {
+		clock {
+			pins = "gpio9";
+			function = "qspi_clk";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		cs {
+			pins = "gpio8";
+			function = "qspi_cs";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		data0 {
+			pins = "gpio7";
+			function = "qspi0";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		data1 {
+			pins = "gpio6";
+			function = "qspi1";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		data2 {
+			pins = "gpio5";
+			function = "qspi2";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		data3 {
+			pins = "gpio4";
+			function = "qspi3";
+			drive-strength = <8>;
+			bias-disable;
+		};
+	};
+
+	mdio1_pins: mdio1_pins {
+		mdc {
+			pins = "gpio36";
+			function = "mdc";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+		mdio {
+			pins = "gpio37";
+			function = "mdio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+
+	leds_pins: leds_pins {
+		led_system_blue {
+			pins = "gpio24";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+		led_system_yellow {
+			pins = "gpio25";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-down;
+		};
+
+	};
+
+	button_pins: button_pins {
+		button_reset {
+			pins = "gpio38";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+		button_mesh {
+			pins = "gpio28";
+			function = "gpio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+};
+
+&blsp1_uart1 {
+	pinctrl-0 = <&blsp_uart0_pins>;
+	pinctrl-names = "default";
+	status = "ok";
+};
+
+&qpic_bam {
+	status = "ok";
+};
+
+&nand {
+	pinctrl-0 = <&qspi_nand_pins>;
+	pinctrl-names = "default";
+	status = "ok";
+};
+
+&qfprom {
+	status = "ok";
+};
+
+&tsens {
+	status = "ok";
+};
+
+&soc {
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-0 = <&leds_pins>;
+		pinctrl-names = "default";
+
+		led_system_blue: led_system_blue {
+			label = "blue:system";
+			gpio = <&tlmm 24 GPIO_ACTIVE_HIGH>;
+			default-state = "off";
+		};
+
+		led_system_yellow: led_system_yellow {
+			label = "yellow:system";
+			gpio = <&tlmm 25 GPIO_ACTIVE_HIGH>;
+		};
+	};
+
+	button {
+		compatible = "gpio-keys";
+		pinctrl-0 = <&button_pins>;
+		pinctrl-names = "default";
+
+		button_reset {
+			label = "reset";
+			gpios = <&tlmm 38 GPIO_ACTIVE_LOW>;
+			linux,input-type = <EV_KEY>;
+			linux,code = <KEY_RESTART>;
+			debounce-interval = <60>;
+		};
+
+		button_mesh {
+			label = "mesh";
+			gpios = <&tlmm 28 GPIO_ACTIVE_LOW>;
+			linux,input-type = <EV_KEY>;
+			linux,code = <KEY_WPS_BUTTON>;
+			debounce-interval = <60>;
+		};
+	};
+
+	ess-instance {
+		num_devices = <1>; // Changed from 2 to 1 (Deleted QCA chip)
+
+		ess-switch@0x39c00000 {
+			compatible = "qcom,ess-switch-ipq50xx";
+			device_id = <0>;
+
+			cmnblk_clk = "internal_96MHz";
+
+			// Set to SGMII-Plus for the Motorcomm Uplink
+			switch_mac_mode = <0xc>; 
+
+			qcom,port_phyinfo {
+				// MAC0 -> GE Phy 
+				port@0 {
+					port_id = <1>;
+					mdiobus = <&mdio0>;
+					phy_address = <7>;
+					phy_dac = <0x10 0x10>;
+				};
+
+				// MAC1 ---SGMII-Plus---> Motorcomm YT9215S (2.5Gbps)
+				port@1 {
+					port_id = <2>;
+					forced-speed = <2500>;
+					forced-duplex = <1>;
+				};
+			};
+		};
+	};
+
+
+	// MAC0 -> GE Phy
+	mac0: dp1 {
+		compatible = "qcom,nss-dp";
+		device_type = "network";
+		qcom,id = <1>;
+
+		reg = <0x39C00000 0x10000>;
+		interrupts = <GIC_SPI 101 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&gcc GCC_SNOC_GMAC0_AXI_CLK>;
+		clock-names = "nss-snoc-gmac-axi-clk";
+
+		qcom,mactype = <2>; // GMAC_HAL_TYPE_SYN_GMAC
+		local-mac-address = [000000000000];
+		mdio-bus = <&mdio0>;
+		qcom,phy-mdio-addr = <7>;
+		phy-mode = "internal";
+		qcom,link-poll = <1>;
+	};
+
+	// MAC1 ---SGMII---> QCA8337 SerDes
+	mac1: dp2 {
+		compatible = "qcom,nss-dp";
+		device_type = "network";
+		qcom,id = <2>;
+
+		reg = <0x39D00000 0x10000>;
+		interrupts = <GIC_SPI 109 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&gcc GCC_SNOC_GMAC1_AXI_CLK>;
+		clock-names = "nss-snoc-gmac-axi-clk";
+
+		qcom,mactype = <2>; // GMAC_HAL_TYPE_SYN_GMAC
+		local-mac-address = [000000000000];
+		phy-mode = "sgmii";
+	};
+};
+
+&mdio0 {
+	status = "ok";
+
+	// IPQ5018 GE Phy -> QCA8337 Phy4
+	ethernet-phy@0 {
+		reg = <7>;
+	};
+};
+
+&mdio1 {
+	pinctrl-0 = <&mdio1_pins>;
+	pinctrl-names = "default";
+	status = "ok";
+};
+
+&qcom_q6v5_wcss {
+	qcom,multipd_arch;
+	memory-region = <&q6_mem_regions>;
+
+	qcom,share_bootargs;
+	qcom,bootargs_smem = <507>;
+	boot-args = </*       type: */ 0x2 /* PCIE1 */
+		     /*     length: */ 4
+		     /*      PD id: */ 2
+		     /* reset GPIO: */ 18
+		     /*   reserved: */ 0 0>;
+
+	// IPQ5018
+	q6v5_wcss_userpd1 {
+		qca,asid = <1>;
+
+		interrupts-extended =
+			<&wcss_smp2p_in 8 0>,
+			<&wcss_smp2p_in 9 0>,
+			<&wcss_smp2p_in 12 0>,
+			<&wcss_smp2p_in 11 0>;
+		interrupt-names =
+			"fatal",
+			"ready",
+			"spawn_ack",
+			"stop-ack";
+
+		qcom,smem-states =
+			<&wcss_smp2p_out 8>,
+			<&wcss_smp2p_out 9>,
+			<&wcss_smp2p_out 10>;
+		qcom,smem-state-names =
+			"shutdown",
+			"stop",
+			"spawn";
+
+		m3_firmware = "IPQ5018/m3_fw.mdt";
+		qca,auto-restart;
+		qca,int_radio;
+	};
+
+	// QCN6102
+	q6v5_wcss_userpd2 {
+		qca,asid = <2>;
+
+		interrupts-extended =
+			<&wcss_smp2p_in 16 0>,
+			<&wcss_smp2p_in 17 0>,
+			<&wcss_smp2p_in 20 0>,
+			<&wcss_smp2p_in 19 0>;
+		interrupt-names =
+			"fatal",
+			"ready",
+			"spawn_ack",
+			"stop-ack";
+
+		qcom,smem-states =
+			<&wcss_smp2p_out 16>,
+			<&wcss_smp2p_out 17>,
+			<&wcss_smp2p_out 18>;
+		qcom,smem-state-names =
+			"shutdown",
+			"stop",
+			"spawn";
+
+		m3_firmware = "qcn6122/m3_fw.mdt";
+		qca,auto-restart;
+	};
+};
+
+&wifi0 {
+	// IPQ5000
+	qcom,multipd_arch;
+	qcom,userpd-subsys-name = "q6v5_wcss_userpd1";
+
+	// Be overridden by /etc/hotplug.d/firmware/10-ath11k-board_id
+	// M79: 0x10
+	// M81: 0x24
+	qcom,board_id = <0x24>;
+
+	qcom,bdf-addr = <0x4c400000 0x4c400000 0x4c400000 0 0>;
+#ifndef CONFIG_ATH11K_MEM_PROFILE_256M
+	qcom,caldb-addr = <0x4d200000>;
+	m3-dump-addr = <0x4d400000>;
+#else
+	qcom,caldb-addr = <0>;
+	m3-dump-addr = <0>;
+#endif
+
+	status = "ok";
+};
+
+&wifi1 {
+	// QCN6102
+	qcom,multipd_arch;
+	qcom,userpd-subsys-name = "q6v5_wcss_userpd2";
+
+	qcom,board_id = <0x60>;
+
+	qcom,bdf-addr = <0x4d500000 0x4d500000 0x4d100000 0 0>;
+#ifndef CONFIG_ATH11K_MEM_PROFILE_256M
+	qcom,caldb-addr = <0x4e500000>;
+	m3-dump-addr = <0x4ea00000>;
+#else
+	qcom,caldb-addr = <0>;
+	m3-dump-addr = <0x4df00000>;
+#endif
+
+	status = "ok";
+};

@@ -1,0 +1,27 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: HaeImAlan <me@haeimalan.com>
+Date: Sat, 22 Aug 2026 00:00:00 +0800
+Subject: [PATCH] mtd: rawnand: winbond: add support for F35UQA512M
+
+XiaMic (Fudan Micro) F35UQA512M SPI NAND, as found on the RN07/AP-MP03.3
+board (id 0xcd, 0x60), reported by the OEM boot log as unrecognized.
+---
+ drivers/mtd/nand/raw/qcom_nandc.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/drivers/mtd/nand/raw/qcom_nandc.c b/drivers/mtd/nand/raw/qcom_nandc.c
+index bacb221..XXXXXXX 100644
+--- a/drivers/mtd/nand/qcom_nandc.c
++++ b/drivers/mtd/nand/qcom_nandc.c
+@@ -75,6 +75,9 @@ struct nand_flash_dev nand_flash_ids[] = {
+	{"W25N01GW SPI NAND 1.8V 1G-BIT",
+		{ .id = {0xef, 0xba} },
+		SZ_2K, SZ_128, SZ_128K, 0, 2, 64, NAND_ECC_INFO(4, SZ_512), 0},
++	{"F35UQA512M SPI NAND 512M-BIT",
++		{ .id = {0xcd, 0x60} },
++		SZ_2K, SZ_64, SZ_128K, 0, 2, 64, NAND_ECC_INFO(4, SZ_512), 0},
+	{"W25N02JWZEIF SPI NAND 2G 1.8V",
+		{ .id = {0xef, 0xbf} },
+		SZ_2K, SZ_256, SZ_128K, 0, 2, 64, NAND_ECC_INFO(4, SZ_512), 0},
+-- 
+2.40.1
