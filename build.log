@@ -1,0 +1,542 @@
+WARNING: Makefile 'package/utils/busybox/Makefile' has a dependency on 'libpam', which does not exist
+WARNING: Makefile 'package/utils/busybox/Makefile' has a dependency on 'libpam', which does not exist
+WARNING: Makefile 'package/utils/busybox/Makefile' has a build dependency on 'libpam', which does not exist
+WARNING: Makefile 'package/boot/kexec-tools/Makefile' has a dependency on 'liblzma', which does not exist
+WARNING: Makefile 'package/network/services/lldpd/Makefile' has a dependency on 'libnetsnmp', which does not exist
+WARNING: Makefile 'package/utils/policycoreutils/Makefile' has a dependency on 'libpam', which does not exist
+WARNING: Makefile 'package/utils/policycoreutils/Makefile' has a dependency on 'libpam', which does not exist
+WARNING: Makefile 'package/utils/policycoreutils/Makefile' has a build dependency on 'libpam', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-clients/Makefile' has a dependency on 'kmod-qca-nss-cfi-cryptoapi', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-clients/Makefile' has a dependency on 'kmod-qca-nss-cfi-cryptoapi', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-clients/Makefile' has a dependency on 'kmod-qca-nss-cfi-ocf', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-clients/Makefile' has a dependency on 'kmod-qca-nss-cfi-ocf', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-clients/Makefile' has a dependency on 'kmod-qca-ovsmgr', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-clients/Makefile' has a dependency on 'kmod-qca-nss-cfi-cryptoapi', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-clients/Makefile' has a dependency on 'kmod-qca-nss-cfi-cryptoapi', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-clients/Makefile' has a dependency on 'kmod-qca-wifi', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-clients/Makefile' has a build dependency on 'kmod-qca-nss-crypto', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-drv/Makefile' has a dependency on 'kmod-qca-nss-gmac', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-qca-ovsmgr', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-shortcut-fe-drv', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-qca-mcs', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-qca-ovsmgr', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-qca-mcs', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-qca-ovsmgr', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-shortcut-fe-drv', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-qca-mcs', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-qca-hyfi-bridge', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-emesh-sp', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-qca-ovsmgr', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-shortcut-fe-drv', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-qca-mcs', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-qca-hyfi-bridge', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-nss-ecm/Makefile' has a dependency on 'kmod-emesh-sp', which does not exist
+WARNING: Makefile 'package/kernel/qca/qca-ssdk/Makefile' has a dependency on 'kmod-qca-rfs', which does not exist
+time: target/linux/prereq#0.04#0.03#0.08
+make[1]: Entering directory '/build/openwrt-redmi-ax3000'
+make[2]: Entering directory '/build/openwrt-redmi-ax3000/target/linux'
+make[3]: Entering directory '/build/openwrt-redmi-ax3000/target/linux/ipq50xx'
+rm -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/localversion
+/build/openwrt-redmi-ax3000/scripts/kconfig.pl  + + /build/openwrt-redmi-ax3000/target/linux/generic/config-4.4 /build/openwrt-redmi-ax3000/target/linux/ipq50xx/config-4.4 /build/openwrt-redmi-ax3000/target/linux/ipq50xx/arm/config-default > /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.target
+awk '/^(#[[:space:]]+)?CONFIG_KERNEL/{sub("CONFIG_KERNEL_","CONFIG_");print}' /build/openwrt-redmi-ax3000/.config >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.target
+echo "# CONFIG_KALLSYMS_EXTRA_PASS is not set" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.target
+echo "# CONFIG_KALLSYMS_ALL is not set" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.target
+echo "CONFIG_KALLSYMS_UNCOMPRESSED=y" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.target
+/build/openwrt-redmi-ax3000/scripts/package-metadata.pl kconfig /build/openwrt-redmi-ax3000/tmp/.packageinfo /build/openwrt-redmi-ax3000/.config 4.4 > /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.override
+/build/openwrt-redmi-ax3000/scripts/kconfig.pl 'm+' '+' /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.target /dev/null /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.override > /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.set
+mv /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.set /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.old
+grep -v INITRAMFS /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.old > /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.set
+echo 'CONFIG_INITRAMFS_SOURCE=""' >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.set
+echo '# CONFIG_INITRAMFS_FORCE is not set' >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.set
+rm -rf /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/modules
+cmp -s /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.set /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.prev || { cp /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.set /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config; cp /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.set /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.prev; }
+export MAKEFLAGS= ; [ -d /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/user_headers ] || make -C /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5 KCFLAGS=" -fno-caller-saves " HOSTCFLAGS="-O2 -I/build/openwrt-redmi-ax3000/staging_dir/host/include  -Wall -Wmissing-prototypes -Wstrict-prototypes" CROSS_COMPILE="arm-openwrt-linux-muslgnueabi-" ARCH="arm" KBUILD_HAVE_NLS=no KBUILD_BUILD_USER="" KBUILD_BUILD_HOST="" KBUILD_BUILD_TIMESTAMP="Mon Apr 17 13:15:36 2023" KBUILD_BUILD_VERSION="0" HOST_LOADLIBES="-L/build/openwrt-redmi-ax3000/staging_dir/host/lib" KBUILD_HOSTLDLIBS="-L/build/openwrt-redmi-ax3000/staging_dir/host/lib" CONFIG_SHELL="bash" V=''  cmd_syscalls=  CC="arm-openwrt-linux-muslgnueabi-gcc" INSTALL_HDR_PATH=/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/user_headers headers_install
+grep '=[ym]' /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.set | LC_ALL=C sort | mkhash md5 > /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.vermagic
+touch /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.configured
+rm -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root-ipq50xx/init
+make -C /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5 KCFLAGS=" -fno-caller-saves " HOSTCFLAGS="-O2 -I/build/openwrt-redmi-ax3000/staging_dir/host/include  -Wall -Wmissing-prototypes -Wstrict-prototypes" CROSS_COMPILE="arm-openwrt-linux-muslgnueabi-" ARCH="arm" KBUILD_HAVE_NLS=no KBUILD_BUILD_USER="" KBUILD_BUILD_HOST="" KBUILD_BUILD_TIMESTAMP="Mon Apr 17 13:15:36 2023" KBUILD_BUILD_VERSION="0" HOST_LOADLIBES="-L/build/openwrt-redmi-ax3000/staging_dir/host/lib" KBUILD_HOSTLDLIBS="-L/build/openwrt-redmi-ax3000/staging_dir/host/lib" CONFIG_SHELL="bash" V=''  cmd_syscalls=  CC="arm-openwrt-linux-muslgnueabi-gcc" Image dtbs modules
+make[4]: Entering directory '/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5'
+Makefile:1217: target '_clean_samples' given more than once in the same rule
+scripts/kconfig/conf  --silentoldconfig Kconfig
+net/sched/Kconfig:44: warning: menuconfig statement without prompt
+#
+# configuration written to .config
+#
+Makefile:1217: target '_clean_samples' given more than once in the same rule
+  CHK     include/config/kernel.release
+  CHK     include/generated/uapi/linux/version.h
+  CHK     include/generated/utsrelease.h
+make[5]: 'include/generated/mach-types.h' is up to date.
+  CHK     include/generated/bounds.h
+  CHK     include/generated/timeconst.h
+  CHK     include/generated/asm-offsets.h
+  CALL    scripts/checksyscalls.sh
+  CHK     include/generated/compile.h
+  GEN     usr/initramfs_data.cpio.gz
+  AS      usr/initramfs_data.o
+  LD      usr/built-in.o
+  GZIP    kernel/config_data.gz
+  CHK     kernel/config_data.h
+  UPD     kernel/config_data.h
+  CC      kernel/configs.o
+  LD      kernel/built-in.o
+  CC      lib/decompress.o
+  AR      lib/lib.a
+  LINK    vmlinux
+  LD      vmlinux.o
+  MODPOST vmlinux.o
+  GEN     .version
+  CHK     include/generated/compile.h
+  KSYM    .tmp_kallsyms1.o
+  KSYM    .tmp_kallsyms2.o
+  LD      vmlinux
+  SORTEX  vmlinux
+  SYSMAP  System.map
+  OBJCOPY arch/arm/boot/Image
+  Kernel: arch/arm/boot/Image is ready
+  Building modules, stage 2.
+  MODPOST 49 modules
+WARNING: modpost: Found 1 section mismatch(es).
+To see full details build your kernel with:
+'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+make[4]: Leaving directory '/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5'
+cmp -s /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/vmlinux /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/vmlinux.debug || { arm-openwrt-linux-muslgnueabi-objcopy -O binary -R .reginfo -R .notes -R .note -R .comment -R .mdebug -R .note.gnu.build-id -S /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/vmlinux /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/vmlinux; arm-openwrt-linux-muslgnueabi-objcopy -R .reginfo -R .notes -R .note -R .comment -R .mdebug -R .note.gnu.build-id -S /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/vmlinux /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/vmlinux.elf; cp -fpR /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/vmlinux /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/vmlinux.debug;  cp -fpR /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/arch/arm/boot//Image /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/Image;  }
+rm -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.prev
+mv /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.old
+grep -v -e INITRAMFS -e CONFIG_RD_ -e CONFIG_BLK_DEV_INITRD /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config.old > /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo 'CONFIG_BLK_DEV_INITRD=y' >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo 'CONFIG_INITRAMFS_SOURCE="/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root-ipq50xx /build/openwrt-redmi-ax3000/target/linux/generic/image/initramfs-base-files.txt"' >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo 'CONFIG_INITRAMFS_ROOT_UID=0' >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo 'CONFIG_INITRAMFS_ROOT_GID=0' >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo "# CONFIG_INITRAMFS_FORCE is not set" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo "CONFIG_INITRAMFS_COMPRESSION_NONE=y" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo -e "# CONFIG_INITRAMFS_COMPRESSION_GZIP is not set\n# CONFIG_RD_GZIP is not set" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo -e "# CONFIG_INITRAMFS_COMPRESSION_BZIP2 is not set\n# CONFIG_RD_BZIP2 is not set" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo -e "# CONFIG_INITRAMFS_COMPRESSION_LZMA is not set\n# CONFIG_RD_LZMA is not set" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo -e "# CONFIG_INITRAMFS_COMPRESSION_LZO is not set\n# CONFIG_RD_LZO is not set" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo -e "# CONFIG_INITRAMFS_COMPRESSION_XZ is not set\n# CONFIG_RD_XZ is not set" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo -e "# CONFIG_INITRAMFS_COMPRESSION_LZ4 is not set\n# CONFIG_RD_LZ4 is not set" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+echo -e "# CONFIG_INITRAMFS_COMPRESSION_ZSTD is not set\n# CONFIG_RD_ZSTD is not set" >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.config
+cp -fpR /build/openwrt-redmi-ax3000/target/linux/generic/other-files/init /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root-ipq50xx/init
+touch -hcd "@1681737336" /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root-ipq50xx/init
+rm -rf /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/usr/initramfs_data.cpio*
+make -C /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5 KCFLAGS=" -fno-caller-saves " HOSTCFLAGS="-O2 -I/build/openwrt-redmi-ax3000/staging_dir/host/include  -Wall -Wmissing-prototypes -Wstrict-prototypes" CROSS_COMPILE="arm-openwrt-linux-muslgnueabi-" ARCH="arm" KBUILD_HAVE_NLS=no KBUILD_BUILD_USER="" KBUILD_BUILD_HOST="" KBUILD_BUILD_TIMESTAMP="Mon Apr 17 13:15:36 2023" KBUILD_BUILD_VERSION="0" HOST_LOADLIBES="-L/build/openwrt-redmi-ax3000/staging_dir/host/lib" KBUILD_HOSTLDLIBS="-L/build/openwrt-redmi-ax3000/staging_dir/host/lib" CONFIG_SHELL="bash" V=''  cmd_syscalls=  CC="arm-openwrt-linux-muslgnueabi-gcc" Image dtbs modules
+make[4]: Entering directory '/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5'
+Makefile:1217: target '_clean_samples' given more than once in the same rule
+scripts/kconfig/conf  --silentoldconfig Kconfig
+net/sched/Kconfig:44: warning: menuconfig statement without prompt
+#
+# configuration written to .config
+#
+Makefile:1217: target '_clean_samples' given more than once in the same rule
+  CHK     include/config/kernel.release
+  CHK     include/generated/uapi/linux/version.h
+  CHK     include/generated/utsrelease.h
+make[5]: 'include/generated/mach-types.h' is up to date.
+  CHK     include/generated/bounds.h
+  CHK     include/generated/timeconst.h
+  CHK     include/generated/asm-offsets.h
+  CALL    scripts/checksyscalls.sh
+  CHK     include/generated/compile.h
+  GEN     usr/initramfs_data.cpio
+  AS      usr/initramfs_data.o
+  LD      usr/built-in.o
+  GZIP    kernel/config_data.gz
+  CHK     kernel/config_data.h
+  UPD     kernel/config_data.h
+  CC      kernel/configs.o
+  LD      kernel/built-in.o
+  CC      lib/decompress.o
+  AR      lib/lib.a
+  LINK    vmlinux
+  LD      vmlinux.o
+  MODPOST vmlinux.o
+  GEN     .version
+  CHK     include/generated/compile.h
+  KSYM    .tmp_kallsyms1.o
+  KSYM    .tmp_kallsyms2.o
+  LD      vmlinux
+  SORTEX  vmlinux
+  SYSMAP  System.map
+  OBJCOPY arch/arm/boot/Image
+  Kernel: arch/arm/boot/Image is ready
+  Building modules, stage 2.
+  MODPOST 49 modules
+WARNING: modpost: Found 1 section mismatch(es).
+To see full details build your kernel with:
+'make CONFIG_DEBUG_SECTION_MISMATCH=y'
+make[4]: Leaving directory '/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5'
+cmp -s /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/vmlinux /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/vmlinux-initramfs.debug || { arm-openwrt-linux-muslgnueabi-objcopy -O binary -R .reginfo -R .notes -R .note -R .comment -R .mdebug -R .note.gnu.build-id -S /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/vmlinux /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/vmlinux-initramfs; arm-openwrt-linux-muslgnueabi-objcopy -R .reginfo -R .notes -R .note -R .comment -R .mdebug -R .note.gnu.build-id -S /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/vmlinux /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/vmlinux-initramfs.elf; cp -fpR /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/vmlinux /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/vmlinux-initramfs.debug;  cp -fpR /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/arch/arm/boot//Image /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/Image-initramfs;  }
+touch /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/.image
+make -C image compile install TARGET_BUILD=
+make[4]: Entering directory '/build/openwrt-redmi-ax3000/target/linux/ipq50xx/image'
+make[4]: Nothing to be done for 'compile'.
+arm-openwrt-linux-muslgnueabi-cpp -nostdinc -x assembler-with-cpp -D__ARM32__ -D__IPQ_MEM_PROFILE_256_MB__ -DCONFIG_ATH11K_MEM_PROFILE_256M -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/arch/arm/boot/dts -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/arch/arm/boot/dts/include -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/include/ -undef -D__DTS__  -o /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-rax3000q.dtb.tmp ../dts/ipq5000-rax3000q.dts
+/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/scripts/dtc/dtc -O dtb -i../dts/   -o /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-rax3000q.dtb /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-rax3000q.dtb.tmp
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@0 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@1 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@4 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@5 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@20 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@21 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@0 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@1 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@4 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@5 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@20 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@21 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/interrupt-controller@b000000/v2m@0 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/interrupt-controller@b000000/v2m@1000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@88000/ethernet-phy@0 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/ethernet-phy@0 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/ethernet-phy@1 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/ethernet-phy@2 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/ethernet-phy@3 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/ethernet-phy@4 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/ess-instance/ess-switch@0x39c00000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (ranges_format): "ranges" property in /soc/interrupt-controller@b000000 has invalid length (12 bytes) (parent #address-cells == 1, child #address-cells == 2, #size-cells == 1)
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/interrupt-controller@b000000/v2m@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/interrupt-controller@b000000/v2m@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/interrupt-controller@b000000/v2m@1000
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/interrupt-controller@b000000/v2m@1000
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/ess-instance/ess-switch@0x39c00000
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/ess-instance/ess-switch@0x39c00000
+rm -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-rax3000q.dtb.tmp
+arm-openwrt-linux-muslgnueabi-cpp -nostdinc -x assembler-with-cpp -D__ARM32__ -D__IPQ_MEM_PROFILE_256_MB__ -DCONFIG_ATH11K_MEM_PROFILE_256M -D__ARM32__ -D__IPQ_MEM_PROFILE_256_MB__ -DCONFIG_ATH11K_MEM_PROFILE_256M -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/arch/arm/boot/dts -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/arch/arm/boot/dts/include -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/include/ -undef -D__DTS__  -o /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-ax3000.dtb.tmp ../dts/ipq5000-ax3000.dts
+/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/scripts/dtc/dtc -O dtb -i../dts/   -o /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-ax3000.dtb /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-ax3000.dtb.tmp
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@0 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@1 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@4 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@5 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@20 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@21 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@0 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@1 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@4 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@5 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@20 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@21 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/interrupt-controller@b000000/v2m@0 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/interrupt-controller@b000000/v2m@1000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@88000/ethernet-phy@0 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/ethernet-phy@0 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/ethernet-phy@1 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/ethernet-phy@2 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/ethernet-phy@3 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/ethernet-phy@4 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/ess-instance/ess-switch@0x39c00000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (ranges_format): "ranges" property in /soc/interrupt-controller@b000000 has invalid length (12 bytes) (parent #address-cells == 1, child #address-cells == 2, #size-cells == 1)
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/interrupt-controller@b000000/v2m@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/interrupt-controller@b000000/v2m@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/interrupt-controller@b000000/v2m@1000
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/interrupt-controller@b000000/v2m@1000
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/ess-instance/ess-switch@0x39c00000
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/ess-instance/ess-switch@0x39c00000
+rm -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-ax3000.dtb.tmp
+arm-openwrt-linux-muslgnueabi-cpp -nostdinc -x assembler-with-cpp -D__ARM32__ -D__IPQ_MEM_PROFILE_256_MB__ -DCONFIG_ATH11K_MEM_PROFILE_256M -D__ARM32__ -D__IPQ_MEM_PROFILE_256_MB__ -DCONFIG_ATH11K_MEM_PROFILE_256M -D__ARM32__ -D__IPQ_MEM_PROFILE_256_MB__ -DCONFIG_ATH11K_MEM_PROFILE_256M -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/arch/arm/boot/dts -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/arch/arm/boot/dts/include -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/include/ -undef -D__DTS__  -o /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-ax3000e.dtb.tmp ../dts/ipq5000-ax3000e.dts
+/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/scripts/dtc/dtc -O dtb -i../dts/   -o /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-ax3000e.dtb /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-ax3000e.dtb.tmp
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@0 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@1 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@4 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@5 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@20 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@21 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@0 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@1 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@4 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@5 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@20 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@21 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/interrupt-controller@b000000/v2m@0 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/interrupt-controller@b000000/v2m@1000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@88000/ethernet-phy@0 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@90000/switch@1d has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/ess-instance/ess-switch@0x39c00000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (ranges_format): "ranges" property in /soc/interrupt-controller@b000000 has invalid length (12 bytes) (parent #address-cells == 1, child #address-cells == 2, #size-cells == 1)
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/interrupt-controller@b000000/v2m@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/interrupt-controller@b000000/v2m@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/interrupt-controller@b000000/v2m@1000
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/interrupt-controller@b000000/v2m@1000
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/ess-instance/ess-switch@0x39c00000
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/ess-instance/ess-switch@0x39c00000
+rm -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-ax3000e.dtb.tmp
+arm-openwrt-linux-muslgnueabi-cpp -nostdinc -x assembler-with-cpp -D__ARM32__ -D__IPQ_MEM_PROFILE_256_MB__ -DCONFIG_ATH11K_MEM_PROFILE_256M -D__ARM32__ -D__IPQ_MEM_PROFILE_256_MB__ -DCONFIG_ATH11K_MEM_PROFILE_256M -D__ARM32__ -D__IPQ_MEM_PROFILE_256_MB__ -DCONFIG_ATH11K_MEM_PROFILE_256M -D__ARM32__ -D__IPQ_MEM_PROFILE_256_MB__ -DCONFIG_ATH11K_MEM_PROFILE_256M -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/arch/arm/boot/dts -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/arch/arm/boot/dts/include -I/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/include/ -undef -D__DTS__  -o /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5018-cr881x.dtb.tmp ../dts/ipq5018-cr881x.dts
+/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/scripts/dtc/dtc -O dtb -i../dts/   -o /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5018-cr881x.dtb /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5018-cr881x.dtb.tmp
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@0 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@1 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@4 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@5 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@20 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi3@f00000/mhi_channels/mhi_chan@21 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@0 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@1 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@4 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@5 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@20 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/wifi4@f00000/mhi_channels/mhi_chan@21 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/interrupt-controller@b000000/v2m@0 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/interrupt-controller@b000000/v2m@1000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/mdio@88000/ethernet-phy@0 has invalid length (4 bytes) (#address-cells == 1, #size-cells == 1)
+Warning (reg_format): "reg" property in /soc/ess-instance/ess-switch@0x39c00000 has invalid length (8 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /switch/ports/port@0 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /switch/ports/port@1 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /switch/ports/port@2 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /switch/ports/port@3 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /switch/ports/port@4 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (reg_format): "reg" property in /switch/ports/port@8 has invalid length (4 bytes) (#address-cells == 2, #size-cells == 1)
+Warning (ranges_format): "ranges" property in /soc/interrupt-controller@b000000 has invalid length (12 bytes) (parent #address-cells == 1, child #address-cells == 2, #size-cells == 1)
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi3@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@1
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@4
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@5
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@20
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/wifi4@f00000/mhi_channels/mhi_chan@21
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/interrupt-controller@b000000/v2m@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/interrupt-controller@b000000/v2m@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/interrupt-controller@b000000/v2m@1000
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/interrupt-controller@b000000/v2m@1000
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /soc/ess-instance/ess-switch@0x39c00000
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /soc/ess-instance/ess-switch@0x39c00000
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /switch/ports/port@0
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /switch/ports/port@0
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /switch/ports/port@1
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /switch/ports/port@1
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /switch/ports/port@2
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /switch/ports/port@2
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /switch/ports/port@3
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /switch/ports/port@3
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /switch/ports/port@4
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /switch/ports/port@4
+Warning (avoid_default_addr_size): Relying on default #address-cells value for /switch/ports/port@8
+Warning (avoid_default_addr_size): Relying on default #size-cells value for /switch/ports/port@8
+rm -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5018-cr881x.dtb.tmp
+mkdir -p /build/openwrt-redmi-ax3000/bin/targets/ipq50xx/arm /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp
+rm -rf /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/json_info_files
+/build/openwrt-redmi-ax3000/staging_dir/host/bin/mksquashfs4 /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root-ipq50xx /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/root.squashfs -nopad -noappend -root-owned -comp xz -Xpreset 9 -Xe -Xlc 0 -Xlp 2 -Xpb 2 -Xbcj arm -b 256k -p '/dev d 755 0 0' -p '/dev/console c 600 0 0 5 1' -processors 1
+Pseudo file "/dev" exists in source filesystem "/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root-ipq50xx/dev".
+Ignoring, exclude it (-e/-ef) to override.
+Parallel mksquashfs: Using 1 processor
+Creating 4.0 filesystem on /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/root.squashfs, block size 262144.
+[===============================================================-] 700/700 100%
+
+Exportable Squashfs 4.0 filesystem, xz compressed, data block size 262144
+	compressed data, compressed metadata, compressed fragments,
+	compressed xattrs, compressed ids
+	duplicates are removed
+Filesystem size 6596.42 Kbytes (6.44 Mbytes)
+	35.08% of uncompressed filesystem size (18802.34 Kbytes)
+Inode table size 6432 bytes (6.28 Kbytes)
+	20.61% of uncompressed inode table size (31213 bytes)
+Directory table size 9022 bytes (8.81 Kbytes)
+	46.38% of uncompressed directory table size (19452 bytes)
+Number of duplicate files found 101
+Number of inodes 935
+Number of files 665
+Number of fragments 25
+Number of symbolic links  185
+Number of device nodes 1
+Number of fifo nodes 0
+Number of socket nodes 0
+Number of directories 84
+Number of ids (unique uids + gids) 1
+Number of uids 1
+	root (0)
+Number of gids 1
+	root (0)
+rm -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-initramfs-fit-uImage.itb
+cp /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/Image-initramfs /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-initramfs-fit-uImage.itb
+/build/openwrt-redmi-ax3000/staging_dir/host/bin/lzma e /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-initramfs-fit-uImage.itb -lc1 -lp2 -pb2  /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-initramfs-fit-uImage.itb.new
+/build/openwrt-redmi-ax3000/scripts/mkits.sh -D xiaomi_ax3000e -o /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-initramfs-fit-uImage.itb.its -k /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-initramfs-fit-uImage.itb -d /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-ax3000e.dtb -C lzma -a 0x41208000 -e 0x41208000  -c config@mp03.3 -A arm -v 4.4-qsdk-11.4.0.5
+PATH=/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/scripts/dtc:/build/openwrt-redmi-ax3000/staging_dir/toolchain-arm_cortex-a7+neon-vfpv4_gcc-5.5.0_musl_eabi/bin:/build/openwrt-redmi-ax3000/staging_dir/toolchain-arm_cortex-a7+neon-vfpv4_gcc-5.5.0_musl_eabi/bin:/build/openwrt-redmi-ax3000/staging_dir/toolchain-arm_cortex-a7+neon-vfpv4_gcc-5.5.0_musl_eabi/bin:/build/openwrt-redmi-ax3000/staging_dir/toolchain-arm_cortex-a7+neon-vfpv4_gcc-5.5.0_musl_eabi/bin:/build/openwrt-redmi-ax3000/staging_dir/host/bin:/build/openwrt-redmi-ax3000/staging_dir/host/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin mkimage -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-initramfs-fit-uImage.itb.its /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-initramfs-fit-uImage.itb.new
+FIT description: ARM OpenWrt FIT (Flattened Image Tree)
+Created:         Mon Apr 17 13:15:36 2023
+ Image 0 (kernel@1)
+  Description:  ARM OpenWrt Linux-4.4-qsdk-11.4.0.5
+  Created:      Mon Apr 17 13:15:36 2023
+  Type:         Kernel Image
+  Compression:  lzma compressed
+  Data Size:    8323830 Bytes = 8128.74 KiB = 7.94 MiB
+  Architecture: ARM
+  OS:           Linux
+  Load Address: 0x41208000
+  Entry Point:  0x41208000
+  Hash algo:    crc32
+  Hash value:   63768709
+  Hash algo:    sha1
+  Hash value:   616f8ab6c473fb678e79efe578ed97a0a0724009
+ Image 1 (fdt@1)
+  Description:  ARM OpenWrt xiaomi_ax3000e device tree blob
+  Created:      Mon Apr 17 13:15:36 2023
+  Type:         Flat Device Tree
+  Compression:  uncompressed
+  Data Size:    57058 Bytes = 55.72 KiB = 0.05 MiB
+  Architecture: ARM
+  Hash algo:    crc32
+  Hash value:   b0fe0156
+  Hash algo:    sha1
+  Hash value:   33eaa0b8d55c712f1fe089828a88dec68f081bbd
+ Default Configuration: 'config@mp03.3'
+ Configuration 0 (config@mp03.3)
+  Description:  OpenWrt
+  Kernel:       kernel@1
+  FDT:          fdt@1
+cp /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-initramfs-fit-uImage.itb /build/openwrt-redmi-ax3000/bin/targets/ipq50xx/arm/openwrt-ipq50xx-arm-xiaomi_ax3000e-initramfs-fit-uImage.itb
+rm -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb
+cp /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/Image /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb
+/build/openwrt-redmi-ax3000/staging_dir/host/bin/lzma e /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb -lc1 -lp2 -pb2  /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb.new
+/build/openwrt-redmi-ax3000/scripts/mkits.sh -D xiaomi_ax3000e -o /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb.its -k /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb -d /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/image-ipq5000-ax3000e.dtb -C lzma -a 0x41208000 -e 0x41208000  -c config@mp03.3 -A arm -v 4.4-qsdk-11.4.0.5
+PATH=/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/linux-4.4-qsdk-11.4.0.5/scripts/dtc:/build/openwrt-redmi-ax3000/staging_dir/toolchain-arm_cortex-a7+neon-vfpv4_gcc-5.5.0_musl_eabi/bin:/build/openwrt-redmi-ax3000/staging_dir/toolchain-arm_cortex-a7+neon-vfpv4_gcc-5.5.0_musl_eabi/bin:/build/openwrt-redmi-ax3000/staging_dir/toolchain-arm_cortex-a7+neon-vfpv4_gcc-5.5.0_musl_eabi/bin:/build/openwrt-redmi-ax3000/staging_dir/toolchain-arm_cortex-a7+neon-vfpv4_gcc-5.5.0_musl_eabi/bin:/build/openwrt-redmi-ax3000/staging_dir/host/bin:/build/openwrt-redmi-ax3000/staging_dir/host/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin mkimage -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb.its /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb.new
+FIT description: ARM OpenWrt FIT (Flattened Image Tree)
+Created:         Mon Apr 17 13:15:36 2023
+ Image 0 (kernel@1)
+  Description:  ARM OpenWrt Linux-4.4-qsdk-11.4.0.5
+  Created:      Mon Apr 17 13:15:36 2023
+  Type:         Kernel Image
+  Compression:  lzma compressed
+  Data Size:    2823323 Bytes = 2757.15 KiB = 2.69 MiB
+  Architecture: ARM
+  OS:           Linux
+  Load Address: 0x41208000
+  Entry Point:  0x41208000
+  Hash algo:    crc32
+  Hash value:   e3997ab5
+  Hash algo:    sha1
+  Hash value:   61c8a4b52e77020b9ca24554e6ca110475eff82c
+ Image 1 (fdt@1)
+  Description:  ARM OpenWrt xiaomi_ax3000e device tree blob
+  Created:      Mon Apr 17 13:15:36 2023
+  Type:         Flat Device Tree
+  Compression:  uncompressed
+  Data Size:    57058 Bytes = 55.72 KiB = 0.05 MiB
+  Architecture: ARM
+  Hash algo:    crc32
+  Hash value:   b0fe0156
+  Hash algo:    sha1
+  Hash value:   33eaa0b8d55c712f1fe089828a88dec68f081bbd
+ Default Configuration: 'config@mp03.3'
+ Configuration 0 (config@mp03.3)
+  Description:  OpenWrt
+  Kernel:       kernel@1
+  FDT:          fdt@1
+[ -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb -a -f /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/root.squashfs ]
+sh /build/openwrt-redmi-ax3000/scripts/ubinize-image.sh  --kernel /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb  /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/root.squashfs /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-squashfs-nand-factory.ubi.tmp -p 128KiB -m 2048   
+[kernel]
+mode=ubi
+vol_id=0
+vol_type=dynamic
+vol_name=kernel
+image=/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb
+[rootfs]
+mode=ubi
+vol_id=1
+vol_type=dynamic
+vol_name=rootfs
+image=/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/root.squashfs
+vol_size=6755328
+[rootfs_data]
+mode=ubi
+vol_id=2
+vol_type=dynamic
+vol_name=rootfs_data
+vol_size=1MiB
+vol_flags=autoresize
+ubinize: volume size was not specified in section "kernel", assume minimum to fit image "/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/xiaomi_ax3000e-fit-uImage.itb"2882268 bytes (2.7 MiB)
+cat /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-squashfs-nand-factory.ubi.tmp >> /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-squashfs-nand-factory.ubi
+rm /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-squashfs-nand-factory.ubi.tmp
+cp /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/linux-ipq50xx_arm/tmp/openwrt-ipq50xx-arm-xiaomi_ax3000e-squashfs-nand-factory.ubi /build/openwrt-redmi-ax3000/bin/targets/ipq50xx/arm/openwrt-ipq50xx-arm-xiaomi_ax3000e-squashfs-nand-factory.ubi
+IPKG_NO_SCRIPT=1 IPKG_INSTROOT=/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root.orig-ipq50xx TMPDIR=/build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root.orig-ipq50xx/tmp /build/openwrt-redmi-ax3000/staging_dir/host/bin/opkg --offline-root /build/openwrt-redmi-ax3000/build_dir/target-arm_cortex-a7+neon-vfpv4_musl_eabi/root.orig-ipq50xx --force-postinstall --add-dest root:/ --add-arch all:100 --add-arch arm_cortex-a7_neon-vfpv4:200 list-installed > /build/openwrt-redmi-ax3000/bin/targets/ipq50xx/arm/openwrt-ipq50xx-arm-xiaomi_ax3000e.manifest
+make[4]: Leaving directory '/build/openwrt-redmi-ax3000/target/linux/ipq50xx/image'
+make[3]: Leaving directory '/build/openwrt-redmi-ax3000/target/linux/ipq50xx'
+make[2]: Leaving directory '/build/openwrt-redmi-ax3000/target/linux'
+time: target/linux/install#30.90#9.99#39.53
+make[1]: Leaving directory '/build/openwrt-redmi-ax3000'

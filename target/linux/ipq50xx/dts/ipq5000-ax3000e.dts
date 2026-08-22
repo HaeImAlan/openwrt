@@ -255,12 +255,19 @@
 				// MAC1 ---SGMII-Plus---> Motorcomm YT9215S (2.5Gbps)
 				port@1 {
 					port_id = <2>;
+					port_mac_sel = "QGMAC_PORT";
 					forced-speed = <2500>;
 					forced-duplex = <1>;
 				};
 			};
 		};
 	};
+
+	yt9215: switch@1d {
+                compatible = "motorcomm,yt9215-smi";
+                mdio-bus = <&mdio1>;
+                mdio-addr = <0x1d>;
+        };
 
 
 	// MAC0 -> GE Phy
@@ -309,9 +316,9 @@
 };
 
 &mdio1 {
-	pinctrl-0 = <&mdio1_pins>;
-	pinctrl-names = "default";
-	status = "ok";
+        pinctrl-0 = <&mdio1_pins>;
+        pinctrl-names = "default";
+        status = "ok";
 };
 
 &qcom_q6v5_wcss {
