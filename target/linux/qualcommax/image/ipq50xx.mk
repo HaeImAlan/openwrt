@@ -30,7 +30,7 @@ define Device/cmcc_mr3000d-ci
 	PAGESIZE := 2048
 	IMAGE_SIZE := 59392k
 	NAND_SIZE := 128m
-	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018 \
 		ipq-wifi-cmcc_mr3000d-ci
 endef
 TARGET_DEVICES += cmcc_mr3000d-ci
@@ -63,7 +63,7 @@ define Device/elecom_wrc-x3000gs2
 	IMAGES += factory.bin
 	IMAGE/factory.bin := append-ubi | qsdk-ipq-factory-nand | \
 		mstc-header 4.04(XZF.0)b90 | elecom-product-header WRC-X3000GS2
-	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018 \
 		ipq-wifi-elecom_wrc-x3000gs2
 endef
 TARGET_DEVICES += elecom_wrc-x3000gs2
@@ -82,7 +82,7 @@ define Device/elecom_wrc-x3000gst2
 	IMAGES += factory.bin
 	IMAGE/factory.bin := append-ubi | qsdk-ipq-factory-nand | \
 		mstc-header 4.04(XZP.0)b90 | elecom-product-header WRC-X3000GST2
-	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018 \
 		ipq-wifi-elecom_wrc-x3000gs2
 endef
 TARGET_DEVICES += elecom_wrc-x3000gst2
@@ -122,7 +122,7 @@ define Device/iodata_wn-dax3000gr
 	IMAGES += factory.bin
 	IMAGE/factory.bin := append-ubi | qsdk-ipq-factory-nand | \
 		mstc-header 4.04(XZH.1)b90 0x480
-	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018 \
 		ipq-wifi-iodata_wn-dax3000gr
 endef
 TARGET_DEVICES += iodata_wn-dax3000gr
@@ -156,7 +156,7 @@ define Device/linksys_mx2000
 	$(call Device/linksys_ipq50xx_mx_base)
 	DEVICE_MODEL := MX2000
 	DEVICE_DTS_CONFIG := config@mp03.5-c1
-	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018 \
 		ipq-wifi-linksys_mx2000
 endef
 TARGET_DEVICES += linksys_mx2000
@@ -185,7 +185,7 @@ define Device/linksys_mx6200
 	NAND_SIZE := 256m
 	SOC := ipq5018
 	IMAGE/factory.ubi := append-ubi | linksys-image type=$$$$(DEVICE_MODEL)
-	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018 \
 		ipq-wifi-linksys_mx6200
 endef
 TARGET_DEVICES += linksys_mx6200
@@ -240,6 +240,17 @@ define Device/xiaomi_redmi-ax5400
 endef
 TARGET_DEVICES += xiaomi_redmi-ax5400
 
+# Bring-up device: wireless intentionally disabled (no ath11k/ipq-wifi
+# packages, WCSS/PCIe left disabled in the DTS) until basic boot is
+# confirmed. See QUALCOMMAX_BRINGUP_PLAN.md.
+define Device/xiaomi_ax3000e
+	$(call Device/xiaomi_ipq50xx_ax_base)
+	DEVICE_MODEL := AX3000E
+	DEVICE_DTS_CONFIG := config@mp03.1
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018
+endef
+TARGET_DEVICES += xiaomi_ax3000e
+
 define Device/yuncore_ax830
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
@@ -249,7 +260,7 @@ define Device/yuncore_ax830
 	PAGESIZE := 2048
 	SOC := ipq5018
 	DEVICE_DTS_CONFIG := config@mp03.5-c1
-	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018 \
 		ipq-wifi-yuncore_ax830
 endef
 TARGET_DEVICES += yuncore_ax830
@@ -280,7 +291,7 @@ define Device/zyxel_scr50axe
 	PAGESIZE := 2048
 	NAND_SIZE := 256m
 	DEVICE_DTS_CONFIG := config@mp03.5-c1
-	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018 \
 		ipq-wifi-zyxel_scr50axe
 endef
 TARGET_DEVICES += zyxel_scr50axe
