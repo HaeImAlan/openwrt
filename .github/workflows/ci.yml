@@ -85,6 +85,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      # The container runs as root but the workspace is owned by the host
+      # runner's uid, so git refuses to operate in it ("detected dubious
+      # ownership"). actions/checkout only sets this for its own step. It
+      # matters because backports' gentree.py runs `git describe` from
+      # tmp/dl/, which walks up into this repo - that is what made
+      # package/kernel/mac80211 fail to generate its source tarball.
+      - name: Let git trust the workspace
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
       - name: Hook the openwrt_core URL for opkg
         run: |
           OWNER="${GITHUB_REPOSITORY%%/*}"
