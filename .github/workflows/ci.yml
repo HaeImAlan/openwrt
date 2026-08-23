@@ -27,6 +27,11 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
+    # Container jobs default to sh; the workflow scripts use bash syntax
+    # (e.g. ${GITHUB_SHA:0:8}), so force bash for every run step here.
+    defaults:
+      run:
+        shell: bash
     steps:
       - name: Show build environment
         run: |
