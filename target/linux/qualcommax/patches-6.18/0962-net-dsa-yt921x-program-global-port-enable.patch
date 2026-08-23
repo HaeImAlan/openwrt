@@ -1,0 +1,46 @@
+From: board fix
+Subject: [PATCH] net: dsa: yt921x: program the global port-enable mask
+
+On the Xiaomi AX3000E the switch came up with the CPU SERDES trained at
+2.5Gbps and all four internal PHYs enumerating correctly, yet no user port
+ever reported carrier and every FDB operation timed out ("FDB probably
+stuck", -110).
+
+The cause is an undocumented global port-enable mask at 0x8002c. A chip reset
+leaves it at 0xff, which disables most of the fabric. This is not in any
+datasheet -- it was found during the QSDK-driver work on this board by dumping
+all 256 registers of the 0x80000 block and diffing against a capture taken
+from a known-good vendor boot, where it reads 0x1fff.
+
+--- a/drivers/net/dsa/yt921x.c
++++ b/drivers/net/dsa/yt921x.c
+@@ -188,6 +188,10 @@
+ 	return priv->reg_ops->read(priv->reg_ctx, reg, valp);
+ }
+ 
++/* Undocumented: global port-enable mask (see yt921x_setup()). */
++#define YT921X_PORT_EN			0x8002c
++#define YT921X_PORT_EN_ALL		0x1fff
++
+ static int yt921x_reg_write(struct yt921x_priv *priv, u32 reg, u32 val)
+ {
+ 	WARN_ON(!mutex_is_locked(&priv->reg_lock));
+@@ -2803,6 +2807,18 @@
+ 
+ 	mutex_lock(&priv->reg_lock);
+ 	res = yt921x_chip_reset(priv);
++	if (!res) {
++		/* Undocumented global port-enable mask. A chip reset leaves it
++		 * at 0xff, which keeps most ports -- including the CPU uplink
++		 * -- disabled in the fabric, so user ports never show carrier
++		 * and FDB operations time out. 0x1fff is the value read back
++		 * from a known-good vendor boot on the Xiaomi AX3000E
++		 * (YT9215S). The register is not described in any datasheet;
++		 * it was found by diffing all 256 registers of the 0x80000
++		 * block against a working stock capture.
++		 */
++		res = yt921x_reg_write(priv, YT921X_PORT_EN, YT921X_PORT_EN_ALL);
++	}
+ 	mutex_unlock(&priv->reg_lock);
+ 
+ 	if (res)
