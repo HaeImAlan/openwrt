@@ -6,6 +6,20 @@ ipq50xx_setup_interfaces()
 {
 	local board="$1"
 	case $board in
+		# Xiaomi AX3000E: Motorcomm YT9215S switch on switch0, CPU uplink on
+		# port 8 (tagged). Single CPU port, so LAN and WAN are separated by
+		# 802.1q VLANs on eth1: LAN = switch ports 0-2 (eth1.1), WAN = switch
+		# port 3 (eth1.2), CPU port 8 tagged in both. This follows the sibling
+		# xiaomi,cr881x layout (highest front port = WAN). If the physical WAN
+		# jack turns out to be a different port, just change which "N:" line
+		# carries the "wan" role. Kept as its own case so nothing here touches
+		# the other three boards.
+		xiaomi,ax3000e)
+			ucidef_add_switch "switch0" \
+				"8t@eth1" \
+				"0:lan:1" "1:lan:2" "2:lan:3" \
+				"3:wan"
+			;;
 		redmi,ax3000)
 			ucidef_add_switch "switch1" \
 				"6u@eth1" "5u@eth0" \
