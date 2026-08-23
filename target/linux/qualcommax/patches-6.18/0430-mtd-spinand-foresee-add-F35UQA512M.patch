@@ -1,0 +1,41 @@
+From: backport
+Subject: [PATCH] mtd: spinand: foresee: add F35UQA512M
+
+The Xiaomi AX3000E carries a FORESEE F35UQA512M, which mainline's spi-nand
+table does not know:
+
+  spi-nand spi0.0: unknown raw ID cd6060cd00
+  spi-nand spi0.0: probe with driver spi-nand failed with error -95
+
+Stock U-Boot identifies it as:
+
+  Serial NAND device Manufacturer:F35UQA512M
+  Device Size:64 MiB, Page size:2048, Spare Size:64, ECC:4-bit
+
+so it is the 512Mbit sibling of the F35SQA001G/002G already listed here --
+same geometry, half the eraseblocks (512 x 128KiB = 64MiB). Manufacturer id
+0xCD is already SPINAND_MFR_FORESEE.
+
+Without this the flash never probes, which on this board also takes out the
+nvmem provider that supplies the ethernet MAC and the ART partition that
+ath11k needs for board data and calibration.
+
+--- a/drivers/mtd/nand/spi/foresee.c
++++ b/drivers/mtd/nand/spi/foresee.c
+@@ -81,6 +81,16 @@
+ 		     SPINAND_HAS_QE_BIT,
+ 		     SPINAND_ECCINFO(&f35sqa002g_ooblayout,
+ 				     f35sqa002g_ecc_get_status)),
++	SPINAND_INFO("F35UQA512M",
++		     SPINAND_ID(SPINAND_READID_METHOD_OPCODE_DUMMY, 0x60, 0x60),
++		     NAND_MEMORG(1, 2048, 64, 64, 512, 10, 1, 1, 1),
++		     NAND_ECCREQ(1, 512),
++		     SPINAND_INFO_OP_VARIANTS(&read_cache_variants,
++					      &write_cache_variants,
++					      &update_cache_variants),
++		     SPINAND_HAS_QE_BIT,
++		     SPINAND_ECCINFO(&f35sqa002g_ooblayout,
++				     f35sqa002g_ecc_get_status)),
+ 	SPINAND_INFO("F35SQA001G",
+ 		     SPINAND_ID(SPINAND_READID_METHOD_OPCODE_DUMMY, 0x71, 0x71),
+ 		     NAND_MEMORG(1, 2048, 64, 64, 1024, 20, 1, 1, 1),
