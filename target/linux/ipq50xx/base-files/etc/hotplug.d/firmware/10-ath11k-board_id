@@ -11,7 +11,8 @@ board=$(board_name)
 case "$FIRMWARE" in
 	"ath11k/IPQ5018/hw1.0/board_id-ahb-c000000.wifi")
 		case "$board" in
-			redmi,ax3000)
+			redmi,ax3000|\
+			xiaomi,ax3000e)
 				case "$(strings /dev/mtdblock15 | grep wl_pa_type= | cut -d= -f2)" in
 					epa) set_board_id 0x24 ;;
 					ipa|*) set_board_id 0x10 ;;
