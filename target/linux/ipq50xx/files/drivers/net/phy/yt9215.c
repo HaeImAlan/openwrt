@@ -5,6 +5,9 @@
 #include <linux/phy.h>
 #include <linux/platform_device.h>
 #include <linux/switch.h>
+#include <linux/gpio/consumer.h>
+#include <linux/delay.h>
+#include <linux/workqueue.h>
 
 #define __bf_shf(x) (__builtin_ffsll(x) - 1)
 #define FIELD_PREP(_mask, _val)						\
@@ -18,6 +21,8 @@
 
 
 #define RESET_TIMEOUT_US				100000
+#define YT9215_PORT8_RETRY_DELAY_MS	3000
+#define YT9215_PORT8_RETRY_MAX		5
 #define INTIF_MDIO_TIMEOUT_US				100000
 
 
@@ -51,6 +56,12 @@
 #define PORT_IGR_LOOKUP_SVLAN				0x80014
 
 #define EXTIF_CTRL					0x80028
+/* Undocumented. Stock (chipid 90020002) holds 0x1fff here while the CPU
+ * uplink passes traffic; after a RESET_CTRL_HW it comes back as 0xff and
+ * port 8 is then excluded from forwarding. Restored verbatim.
+ */
+#define YT9215_GLOBAL_PORT_EN				0x8002c
+#define  YT9215_GLOBAL_PORT_EN_ALL			0x1fff
 #define  EXTIF_CTRL_EXTIF1_ENABLE			BIT(1)
 #define  EXTIF_CTRL_EXTIF0_ENABLE			BIT(0)
 
@@ -248,8 +259,24 @@ struct yt9215_priv {
 	struct mii_bus *mdio_bus;
 	int mdio_addr;
 	int switchid;
+	struct gpio_desc *reset_gpio;
 
 	struct mii_bus *int_mdio_bus;
+
+	u32 debug_reg;
+
+	struct delayed_work port8_retry_work;
+	bool port8_link_seen;
+	int port8_retry_attempts;
+
+	/* Set only for boards whose DT switch node has
+	 * "motorcomm,cpu-uplink-quirk" (currently just xiaomi,ax3000e, chipid
+	 * 0x90020002). Gates the stock-verified raw CPU-uplink register values
+	 * and the self-healing port-8 monitor. Other YT9215S boards (e.g.
+	 * xiaomi,cr881x, chipid 0x90020001) leave this false and keep the
+	 * original driver behaviour untouched.
+	 */
+	bool cpu_uplink_quirk;
 
 	struct switch_dev swdev;
 };
@@ -410,6 +437,15 @@ static void yt9215_init_ports(struct yt9215_priv *priv)
 			val |= PORT_CTRL_LINK_AN | PORT_CTRL_FLOWCONTROL_AN;
 		}
 		yt9215_smi_write(priv, PORT_CTRL(reg), val);
+		if (reg == 8 && priv->cpu_uplink_quirk) {
+			/* AX3000E stock firmware (chipid 90020002) writes 0x1fc here,
+			 * not what the generic bitfield construction above produces
+			 * (0x9c) -- includes RX/TX_FLOWCONTROL and an undocumented
+			 * bit 8. Verified via `switch_ctl sw_reg r 0x80120` on a
+			 * working boot. Gated so other YT9215S boards keep 0x9c.
+			 */
+			yt9215_smi_write(priv, PORT_CTRL(reg), 0x1fc);
+		}
 
 		mode = of_get_phy_mode(port);
 		switch(mode) {
@@ -420,46 +456,68 @@ static void yt9215_init_ports(struct yt9215_priv *priv)
 				if (reg != 8)
 					break;
 
-				yt9215_smi_rmw(priv, EXTIF_CTRL,
-					       EXTIF_CTRL_EXTIF0_ENABLE,
-					       EXTIF_CTRL_EXTIF0_ENABLE);
-				yt9215_smi_rmw(priv, EXTIF_SEL,
-					       EXTIF_SEL_EXTIF1_MASK,
-					       EXTIF_SEL_EXTIF1_XMII);
-				yt9215_smi_rmw(priv, EXTIF_SEL,
-					       EXTIF_SEL_EXTIF0_MASK,
-					       EXTIF_SEL_EXTIF0_SERDES);
+				if (priv->cpu_uplink_quirk) {
+					/* AX3000E (chipid 90020002): the bitfield construction
+					 * in the #else branch does not match what a genuinely
+					 * working boot writes -- verified via `switch_ctl
+					 * sw_reg r` against stock firmware. EXTIF_SEL must be
+					 * 0x0 (both EXTIF0 and EXTIF1 = SERDES, not EXTIF1=XMII),
+					 * and SGMII_CTRL(0) needs 0x27a, which includes bits 5-6
+					 * that have no named field in this driver at all, and a
+					 * SPEED sub-field encoding of 2 rather than the "2500"
+					 * encoding of 4 despite MODE=2500BASEX. Write the exact
+					 * known-good raw values directly. This is board-gated so
+					 * other YT9215S boards (e.g. cr881x) keep the original
+					 * bitfield behaviour unchanged.
+					 */
+					yt9215_smi_write(priv, EXTIF_CTRL, EXTIF_CTRL_EXTIF0_ENABLE);
+					yt9215_smi_write(priv, EXTIF_SEL, 0x0);
+					yt9215_smi_write(priv, SGMII_CTRL(0), 0x27a);
+				} else {
+					/* Original driver behaviour, preserved verbatim for
+					 * non-quirk boards.
+					 */
+					yt9215_smi_rmw(priv, EXTIF_CTRL,
+						       EXTIF_CTRL_EXTIF0_ENABLE,
+						       EXTIF_CTRL_EXTIF0_ENABLE);
+					yt9215_smi_rmw(priv, EXTIF_SEL,
+						       EXTIF_SEL_EXTIF1_MASK,
+						       EXTIF_SEL_EXTIF1_XMII);
+					yt9215_smi_rmw(priv, EXTIF_SEL,
+						       EXTIF_SEL_EXTIF0_MASK,
+						       EXTIF_SEL_EXTIF0_SERDES);
 
-				val = SGMII_CTRL_LINK;
-				switch (mode) {
-					case PHY_INTERFACE_MODE_SGMII:
-						val |= SGMII_CTRL_MODE_SGMII_PHY;
-						break;
-					case PHY_INTERFACE_MODE_2500BASEX:
-						val |= SGMII_CTRL_MODE_2500BASEX;
-						break;
-					default: /* avoid warning */
-						break;
+					val = SGMII_CTRL_LINK;
+					switch (mode) {
+						case PHY_INTERFACE_MODE_SGMII:
+							val |= SGMII_CTRL_MODE_SGMII_PHY;
+							break;
+						case PHY_INTERFACE_MODE_2500BASEX:
+							val |= SGMII_CTRL_MODE_2500BASEX;
+							break;
+						default: /* avoid warning */
+							break;
+					}
+					switch (speed) {
+						case 10:
+							val |= SGMII_CTRL_SPEED_10;
+							break;
+						case 100:
+							val |= SGMII_CTRL_SPEED_100;
+							break;
+						case 1000:
+							val |= SGMII_CTRL_SPEED_1000;
+							break;
+						case 2500:
+							val |= SGMII_CTRL_SPEED_2500;
+							break;
+					}
+					if (full_duplex)
+						val |= SGMII_CTRL_DUPLEX_FULL;
+					else
+						val |= SGMII_CTRL_DUPLEX_HALF;
+					yt9215_smi_write(priv, SGMII_CTRL(0), val);
 				}
-				switch (speed) {
-					case 10:
-						val |= SGMII_CTRL_SPEED_10;
-						break;
-					case 100:
-						val |= SGMII_CTRL_SPEED_100;
-						break;
-					case 1000:
-						val |= SGMII_CTRL_SPEED_1000;
-						break;
-					case 2500:
-						val |= SGMII_CTRL_SPEED_2500;
-						break;
-				}
-				if (full_duplex)
-					val |= SGMII_CTRL_DUPLEX_FULL;
-				else
-					val |= SGMII_CTRL_DUPLEX_HALF;
-				yt9215_smi_write(priv, SGMII_CTRL(0), val);
 
 				break;
 			case PHY_INTERFACE_MODE_RGMII:
@@ -615,7 +673,20 @@ static int yt9215_set_vlan(struct switch_dev *dev, struct switch_val *val)
 static int yt9215_reset_switch(struct switch_dev *dev)
 {
 	struct yt9215_priv *priv = container_of(dev, struct yt9215_priv, swdev);
-	return yt9215_config(priv);
+	int ret = yt9215_config(priv);
+
+	/* yt9215_config() does a RESET_CTRL_HW chip reset, which drops port 8.
+	 * Re-arm the monitor so the CPU uplink comes back. Only for boards that
+	 * arm the monitor in the first place (see cpu_uplink_quirk); leaving it
+	 * untouched keeps other YT9215S boards on their original behaviour.
+	 */
+	if (priv->cpu_uplink_quirk) {
+		priv->port8_retry_attempts = 0;
+		priv->port8_link_seen = false;
+		mod_delayed_work(system_wq, &priv->port8_retry_work,
+				 msecs_to_jiffies(YT9215_PORT8_RETRY_DELAY_MS));
+	}
+	return ret;
 }
 
 static int yt9215_get_link(struct switch_dev *dev, int port,
@@ -626,7 +697,7 @@ static int yt9215_get_link(struct switch_dev *dev, int port,
 
 	val = yt9215_smi_read(priv, PORT_STATUS(port));
 	link->aneg = true;
-	link->link = (val & PORT_STATUS_RX_MAC_EN) && (val & PORT_STATUS_TX_MAC_EN);
+	link->link = !!(val & PORT_STATUS_LINK);
 	link->duplex = ((val & PORT_STATUS_DUPLEX_MASK) == PORT_STATUS_DUPLEX_FULL);
 	link->tx_flow = !!(val & PORT_STATUS_TX_FLOWCONTROL);
 	link->rx_flow = !!(val & PORT_STATUS_RX_FLOWCONTROL);
@@ -680,6 +751,38 @@ static int yt9215_port_get_mib_dword(struct switch_dev *dev, const struct switch
 	return 0;
 }
 
+static int yt9215_get_reg_addr(struct switch_dev *dev, const struct switch_attr *attr,
+				struct switch_val *val)
+{
+	struct yt9215_priv *priv = container_of(dev, struct yt9215_priv, swdev);
+	val->value.i = priv->debug_reg;
+	return 0;
+}
+
+static int yt9215_set_reg_addr(struct switch_dev *dev, const struct switch_attr *attr,
+				struct switch_val *val)
+{
+	struct yt9215_priv *priv = container_of(dev, struct yt9215_priv, swdev);
+	priv->debug_reg = (u32) val->value.i;
+	return 0;
+}
+
+static int yt9215_get_reg_val(struct switch_dev *dev, const struct switch_attr *attr,
+			       struct switch_val *val)
+{
+	struct yt9215_priv *priv = container_of(dev, struct yt9215_priv, swdev);
+	val->value.i = (int) yt9215_smi_read(priv, priv->debug_reg);
+	return 0;
+}
+
+static int yt9215_set_reg_val(struct switch_dev *dev, const struct switch_attr *attr,
+			       struct switch_val *val)
+{
+	struct yt9215_priv *priv = container_of(dev, struct yt9215_priv, swdev);
+	yt9215_smi_write(priv, priv->debug_reg, (u32) val->value.i);
+	return 0;
+}
+
 static struct switch_attr yt9215_global_attrs[] = {
 	// {
 	// 	.type = SWITCH_TYPE_INT,
@@ -688,6 +791,20 @@ static struct switch_attr yt9215_global_attrs[] = {
 	// 	.set = yt9215_set_enable_vlan,
 	// 	.get = yt9215_get_enable_vlan,
 	// },
+	{
+		.type = SWITCH_TYPE_INT,
+		.name = "reg_addr",
+		.description = "Debug: raw register address (hex/dec) for reg_val",
+		.set = yt9215_set_reg_addr,
+		.get = yt9215_get_reg_addr,
+	},
+	{
+		.type = SWITCH_TYPE_INT,
+		.name = "reg_val",
+		.description = "Debug: raw register read/write at reg_addr",
+		.set = yt9215_set_reg_val,
+		.get = yt9215_get_reg_val,
+	},
 };
 
 #define YT9215_PORT_ATTR_MIB(attr, offset)			\
@@ -780,6 +897,64 @@ static const struct switch_dev_ops yt9215_ops = {
 	.get_port_stats = yt9215_get_stats,
 };
 
+/* Port 8 (SGMII+/2500BASE-X CPU uplink) intermittently fails to train if
+ * PORT_CTRL(8) is written at probe time -- some SoC-side SERDES/UNIPHY
+ * prerequisite isn't ready yet. Re-issuing the identical write a few
+ * seconds later reliably brings the link up (confirmed repeatedly: same
+ * exact value, only difference is timing). Retry a few times in case one
+ * re-issue isn't enough on a slower boot.
+ */
+
+/* Everything the SGMII+ CPU uplink (port 8) needs in order to actually carry
+ * traffic. yt9215_init_ports() writes most of this at probe, but a later
+ * UCI-triggered yt9215_reset_switch() -> RESET_CTRL_HW wipes it and nothing
+ * put it back, which left port 8 linked at 2500baseT while forwarding zero
+ * frames. Verified against a working stock boot: with these four registers
+ * restored, port 8's TX_BROADCAST starts counting and the CPU receives.
+ */
+static void yt9215_setup_cpu_uplink(struct yt9215_priv *priv)
+{
+	yt9215_smi_write(priv, EXTIF_CTRL, EXTIF_CTRL_EXTIF0_ENABLE);
+	yt9215_smi_write(priv, EXTIF_SEL, 0x0);
+	yt9215_smi_write(priv, SGMII_CTRL(0), 0x27a);
+	yt9215_smi_write(priv, YT9215_GLOBAL_PORT_EN,
+			 YT9215_GLOBAL_PORT_EN_ALL);
+	yt9215_smi_write(priv, PORT_CTRL(8), 0x1fc);
+}
+
+static void yt9215_port8_retry_work(struct work_struct *work)
+{
+	struct yt9215_priv *priv = container_of(to_delayed_work(work),
+						 struct yt9215_priv, port8_retry_work);
+	u32 status;
+
+	status = yt9215_smi_read(priv, PORT_STATUS(8));
+	if (status & PORT_STATUS_LINK) {
+		if (!priv->port8_link_seen) {
+			dev_info(&priv->pdev->dev, "port 8 link up after %d poke(s)\n",
+				 priv->port8_retry_attempts);
+			priv->port8_link_seen = true;
+		}
+		priv->port8_retry_attempts = 0;
+	} else {
+		if (priv->port8_link_seen) {
+			dev_info(&priv->pdev->dev, "port 8 link lost, re-poking\n");
+			priv->port8_link_seen = false;
+		}
+		priv->port8_retry_attempts++;
+		yt9215_setup_cpu_uplink(priv);
+	}
+
+	/* Keep monitoring forever. A UCI-triggered switch reset
+	 * (yt9215_reset_switch -> yt9215_config -> RESET_CTRL_HW) happens long
+	 * after probe, when netifd applies /etc/config/network, and drops this
+	 * link. The old code returned as soon as the link came up once, so
+	 * nothing ever brought it back and the CPU uplink stayed down.
+	 */
+	schedule_delayed_work(&priv->port8_retry_work,
+			      msecs_to_jiffies(YT9215_PORT8_RETRY_DELAY_MS));
+}
+
 static int yt9215_smi_probe(struct platform_device *pdev)
 {
 	struct device *dev = &pdev->dev;
@@ -795,6 +970,23 @@ static int yt9215_smi_probe(struct platform_device *pdev)
 		return -ENOMEM;
 	priv->pdev = pdev;
 	dev_set_drvdata(&pdev->dev, priv);
+
+	priv->reset_gpio = devm_gpiod_get_optional(dev, "reset", GPIOD_OUT_HIGH);
+	if (IS_ERR(priv->reset_gpio)) {
+		ret = PTR_ERR(priv->reset_gpio);
+		dev_info(dev, "fail to get reset-gpios: %d\n", ret);
+		goto out_free_priv;
+	}
+	if (priv->reset_gpio) {
+		u32 assert_us = 10000, deassert_us = 50000;
+		of_property_read_u32(dev_of_node(dev), "reset-assert-us", &assert_us);
+		of_property_read_u32(dev_of_node(dev), "reset-deassert-us", &deassert_us);
+		dev_info(dev, "asserting reset-gpios for %u us\n", assert_us);
+		usleep_range(assert_us, assert_us + 1000);
+		gpiod_set_value_cansleep(priv->reset_gpio, 0);
+		dev_info(dev, "deasserted reset-gpios, waiting %u us\n", deassert_us);
+		usleep_range(deassert_us, deassert_us + 1000);
+	}
 
 	np = of_parse_phandle(dev_of_node(dev), "mdio-bus", 0);
 	if (!np) {
@@ -817,6 +1009,9 @@ static int yt9215_smi_probe(struct platform_device *pdev)
 
 	if (!of_property_read_u32(dev_of_node(dev), "switchid", &priv->switchid))
 		priv->switchid = 0;
+
+	priv->cpu_uplink_quirk = of_property_read_bool(dev_of_node(dev),
+						       "motorcomm,cpu-uplink-quirk");
 
 	chipid = yt9215_smi_read(priv, CHIP_ID);
 	if ((chipid & YT9215_CHIP_ID_MASK) != YT9215_CHIP_ID)
@@ -858,6 +1053,15 @@ static int yt9215_smi_probe(struct platform_device *pdev)
 	if(ret < 0)
 		goto out_free_switch;
 
+	/* The self-healing port-8 CPU-uplink monitor is only needed on boards
+	 * that use the stock-verified raw uplink config (xiaomi,ax3000e). Other
+	 * YT9215S boards never arm it, so their behaviour is unchanged.
+	 */
+	INIT_DELAYED_WORK(&priv->port8_retry_work, yt9215_port8_retry_work);
+	if (priv->cpu_uplink_quirk)
+		schedule_delayed_work(&priv->port8_retry_work,
+				      msecs_to_jiffies(YT9215_PORT8_RETRY_DELAY_MS));
+
 	index++;
 	return 0;
 
@@ -873,6 +1077,7 @@ out_free_priv:
 static int yt9215_smi_remove(struct platform_device *pdev)
 {
 	struct yt9215_priv *priv = dev_get_drvdata(&pdev->dev);
+	cancel_delayed_work_sync(&priv->port8_retry_work);
 	unregister_switch(&priv->swdev);
 	mdiobus_unregister(priv->int_mdio_bus);
 	kfree(priv);
@@ -892,4 +1097,21 @@ static struct platform_driver yt9215_mdio_driver = {
 		.of_match_table = yt9215_of_match,
 	},
 };
+/*
+ * Compat shim for experimenting with the stock vendor switch module.
+ *
+ * The vendor module resolves one symbol that mainline/QSDK does not provide:
+ * "portmap_get_by_vid", a 4-byte function pointer living in the BSS of Xiaomi's
+ * patched bonding.ko and exported from there. The vendor module only ever
+ * *writes* its own callback into that pointer (registering itself with the
+ * vendor bonding driver's LACP-ish port-mapping hook); nothing in this tree
+ * ever calls through it.
+ *
+ * Providing the symbol here lets the vendor module be insmod'ed for
+ * comparison//proc/smi register-dumping purposes without needing any part of
+ * Xiaomi's proprietary bonding module. This is our own code, not theirs.
+ */
+void *portmap_get_by_vid;
+EXPORT_SYMBOL(portmap_get_by_vid);
+
 module_platform_driver(yt9215_mdio_driver);
