@@ -27,6 +27,13 @@ jobs:
       DEBIAN_FRONTEND: noninteractive
       LANG: C.UTF-8
       LC_ALL: C.UTF-8
+      # Container jobs run every step as root, and gnulib's configure (tar,
+      # and other GNU tools) hard-refuses to run as root:
+      #   "you should not run configure as root (set FORCE_UNSAFE_CONFIGURE=1
+      #    in environment to bypass this check)"
+      # That is what broke tools/tar here. The check only guards a mknod-as-
+      # root probe, so bypassing it is what upstream intends for CI images.
+      FORCE_UNSAFE_CONFIGURE: 1
     # Container jobs default to sh; the workflow scripts use bash syntax
     # (e.g. ${GITHUB_SHA:0:8}), so force bash for every run step here.
     defaults:
