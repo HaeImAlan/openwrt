@@ -118,19 +118,26 @@ jobs:
 
       - name: Download
         run: |
-          make -j$(nproc) download
+          # A failing package/download does NOT make the toplevel make exit
+          # non-zero, so scan the output and re-run the offender verbosely
+          # instead of letting it resurface 30 minutes later in "Build all".
+          make -j$(nproc) download 2>&1 | tee /tmp/download.log
+          if grep -q 'ERROR: .* failed to build' /tmp/download.log; then
+            echo "::warning::download reported errors, re-running with V=sc"
+            make -j1 V=sc download
+          fi
 
       - name: Build tools
         run: |
-          make -j$(nproc) tools/install
+          make -j$(nproc) tools/install || make -j1 V=sc tools/install
 
       - name: Build toolchain
         run: |
-          make -j$(nproc) toolchain/install
+          make -j$(nproc) toolchain/install || make -j1 V=sc toolchain/install
 
       - name: Build all
         run: |
-          make -j$(nproc)
+          make -j$(nproc) || make -j1 V=sc
 
       - name: Upload bin to artifacts
         uses: actions/upload-artifact@v7
