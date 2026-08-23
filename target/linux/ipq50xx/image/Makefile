@@ -81,6 +81,7 @@ define Device/xiaomi_ax3000e
   SOC := ipq5000
   DEVICE_VENDOR := Xiaomi
   DEVICE_MODEL := AX3000E
+  SUPPORTED_DEVICES := xiaomi,ax3000e
   DEVICE_ALT0_VENDOR := Qualcomm
   DEVICE_ALT0_MODEL := AP-MP03.3
   BLOCKSIZE := 128k

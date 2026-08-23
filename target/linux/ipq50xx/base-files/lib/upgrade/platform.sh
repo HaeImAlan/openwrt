@@ -7,6 +7,7 @@ platform_check_image() {
 	local board=$(board_name)
 	case $board in
 		redmi,ax3000|\
+		xiaomi,ax3000e|\
 		xiaomi,cr881x)
 			mi_dualboot_check_image "$1"
 			return $?
@@ -22,6 +23,7 @@ platform_do_upgrade() {
 	local board=$(board_name)
 	case $board in
 		redmi,ax3000|\
+		xiaomi,ax3000e|\
 		xiaomi,cr881x)
 			mi_dualboot_do_upgrade "$1"
 			;;
