@@ -1,0 +1,54 @@
+From: board fix
+Subject: [PATCH] net: dsa: yt921x: program the 0xd0000 per-port block
+
+Last set of registers that still differed from a known-good vendor boot on
+the Xiaomi AX3000E after the CPU-uplink registers were corrected. The block
+is undocumented: one global word at 0xd0000 plus an 11-entry per-port array
+at 0xd0004. Stock has 0xe002 and 0x20670 respectively; this driver leaves
+0xe000 and 0x670, i.e. bit 1 globally and bit 17 per port unset.
+
+--- a/drivers/net/dsa/yt921x.c
++++ b/drivers/net/dsa/yt921x.c
+@@ -188,6 +188,13 @@
+ 	return priv->reg_ops->read(priv->reg_ctx, reg, valp);
+ }
+ 
++/* Undocumented 0xd0000 block (see yt921x_setup()). */
++#define YT921X_D0_CTRL			0xd0000
++#define YT921X_D0_CTRL_VAL		0xe002
++#define YT921X_D0_PORT(i)		(0xd0004 + (i) * 4)
++#define YT921X_D0_PORT_NUM		11
++#define YT921X_D0_PORT_VAL		0x20670
++
+ /* CPU-uplink registers, values taken from a known-good vendor boot on the
+  * Xiaomi AX3000E (YT9215S). See yt921x_setup().
+  */
+@@ -2813,6 +2820,7 @@
+ 	struct device *dev = to_device(priv);
+ 	struct device_node *np = dev->of_node;
+ 	struct device_node *child;
++	unsigned int i;
+ 	int res;
+ 
+ 	mutex_lock(&priv->reg_lock);
+@@ -2848,6 +2856,20 @@
+ 		if (!res)
+ 			res = yt921x_reg_write(priv, YT921X_PORT_CTRL_CPU,
+ 					       YT921X_PORT_CTRL_CPU_2500FD);
++
++		/* Undocumented 0xd0000 block: a global word plus an 11-entry
++		 * per-port array. A working vendor boot has 0xe002 and 0x20670
++		 * in every entry, while this driver leaves 0xe000 / 0x670 --
++		 * i.e. bit 1 globally and bit 17 per port are never set. These
++		 * are the last registers that still differed from the stock
++		 * capture once the CPU-uplink set was corrected.
++		 */
++		if (!res)
++			res = yt921x_reg_write(priv, YT921X_D0_CTRL,
++					       YT921X_D0_CTRL_VAL);
++		for (i = 0; !res && i < YT921X_D0_PORT_NUM; i++)
++			res = yt921x_reg_write(priv, YT921X_D0_PORT(i),
++					       YT921X_D0_PORT_VAL);
+ 	}
+ 	mutex_unlock(&priv->reg_lock);
+ 
