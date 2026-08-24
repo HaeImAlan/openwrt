@@ -1,0 +1,44 @@
+#!/bin/sh
+#
+# ucidef_add_switch (in board.d/02_network) leaves LAN/WAN as opaque 8021q
+# devices named "eth1.1"/"eth1.2". Give them clean names ("lan"/"wan")
+# instead, matching how mainline's DSA driver names the same ports.
+#
+# This has to live in /etc/uci-defaults, not /etc/board.d: config_generate
+# (which invokes board.d) exits immediately if /etc/config/network already
+# has content -- which it does here, shipped pre-populated in the image --
+# so board.d never actually runs at real boot. /etc/uci-defaults is sourced
+# (not executed) by /etc/init.d/boot's uci_apply_defaults and deleted after
+# a successful run, which is the real one-shot mechanism on this platform.
+# Because it's sourced, early exits must use "return", not "exit".
+
+. /lib/functions.sh
+. /lib/functions/system.sh
+
+[ "$(board_name)" = "xiaomi,ax3000e" ] || return 0
+
+[ "$(uci -q get network.@device[0].name)" = "br-lan" ] || return 0
+uci -q get network.@device[0].ports | grep -q 'eth1\.1' || return 0
+
+uci batch <<-EOF
+	set network.lan_dev=device
+	set network.lan_dev.name='lan'
+	set network.lan_dev.type='8021q'
+	set network.lan_dev.ifname='eth1'
+	set network.lan_dev.vid='1'
+
+	set network.wan_dev=device
+	set network.wan_dev.name='wan'
+	set network.wan_dev.type='8021q'
+	set network.wan_dev.ifname='eth1'
+	set network.wan_dev.vid='2'
+
+	del_list network.@device[0].ports='eth1.1'
+	add_list network.@device[0].ports='lan'
+
+	set network.wan.device='wan'
+	set network.wan6.device='wan'
+EOF
+uci commit network
+
+return 0
