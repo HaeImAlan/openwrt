@@ -1,0 +1,70 @@
+From: backport
+Subject: [PATCH] include/linux: backport bitfield.h from v4.9
+
+qca-ssdk 12.5.0.6 includes <linux/bitfield.h> from include/init/ssdk_plat.h
+and uses FIELD_GET/FIELD_PREP throughout (986 and 2 call sites). That header
+first appeared in Linux v4.9 (3e9b3112ec74 "add basic register-field
+manipulation macros"), so it is missing on this QSDK 4.4 kernel and the
+module fails with:
+
+  include/init/ssdk_plat.h:46:28: fatal error: linux/bitfield.h: No such file
+
+Backport the header. __BUILD_BUG_ON_NOT_POWER_OF_2 does not exist in 4.4's
+linux/bug.h, so define it here under #ifndef using the upstream definition.
+
+--- /dev/null
++++ b/include/linux/bitfield.h
+@@ -0,0 +1,53 @@
++/*
++ * Copyright (C) 2014 Felix Fietkau <nbd@nbd.name>
++ * Copyright (C) 2004 - 2009 Ivo van Doorn <IvDoorn@gmail.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef _LINUX_BITFIELD_H
++#define _LINUX_BITFIELD_H
++
++#include <linux/bug.h>
++
++#ifndef __BUILD_BUG_ON_NOT_POWER_OF_2
++#define __BUILD_BUG_ON_NOT_POWER_OF_2(n)	\
++	BUILD_BUG_ON(((n) & ((n) - 1)) != 0)
++#endif
++
++#define __bf_shf(x) (__builtin_ffsll(x) - 1)
++
++#define __BF_FIELD_CHECK(_mask, _reg, _val, _pfx)			\
++	({								\
++		BUILD_BUG_ON_MSG(!__builtin_constant_p(_mask),		\
++				 _pfx "mask is not constant");		\
++		BUILD_BUG_ON_MSG(!(_mask), _pfx "mask is zero");	\
++		BUILD_BUG_ON_MSG(__builtin_constant_p(_val) ?		\
++				 ~((_mask) >> __bf_shf(_mask)) & (_val) : 0, \
++				 _pfx "value too large for the field");	\
++		BUILD_BUG_ON_MSG((_mask) > (typeof(_reg))~0ull,		\
++				 _pfx "type of reg too small for mask");	\
++		__BUILD_BUG_ON_NOT_POWER_OF_2((_mask) +			\
++					      (1ULL << __bf_shf(_mask)));	\
++	})
++
++#define FIELD_PREP(_mask, _val)						\
++	({								\
++		__BF_FIELD_CHECK(_mask, 0ULL, _val, "FIELD_PREP: ");	\
++		((typeof(_mask))(_val) << __bf_shf(_mask)) & (_mask);	\
++	})
++
++#define FIELD_GET(_mask, _reg)						\
++	({								\
++		__BF_FIELD_CHECK(_mask, _reg, 0U, "FIELD_GET: ");	\
++		(typeof(_mask))(((_reg) & (_mask)) >> __bf_shf(_mask));	\
++	})
++
++#endif

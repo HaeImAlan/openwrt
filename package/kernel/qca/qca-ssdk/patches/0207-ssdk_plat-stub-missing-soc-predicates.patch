@@ -1,0 +1,49 @@
+From: build fix
+Subject: [PATCH] ssdk_plat: stub SoC predicates absent from kernel-4.4 socinfo.h
+
+ssdk_uniphy_valid_check() calls six helpers that only exist in the newer
+QSDK socinfo.h:
+
+  cpu_is_ipq53xx  cpu_is_ipq5302  cpu_is_ipq5312  cpu_is_ipq95xx
+  cpu_is_uniphy1_enabled  cpu_is_uniphy2_enabled
+
+Kernel 4.4's socinfo.h stops at ipq807x/ipq60xx/ipq50xx, so the build fails
+with implicit-declaration errors. These are the only cpu_is_xxx helpers in the
+whole tree that 4.4 lacks.
+
+Returning 0 is not just a compile shim, it is the correct answer for IPQ5018:
+none of those SoC predicates match it, and QSDK 5.4's socinfo.h defines
+cpu_is_uniphy1_enabled() as ipq807x || ipq60xx || ipq9570 || ipq9574, which is
+false here as well. In practice it never even runs -- every caller of
+ssdk_uniphy_valid_check() in ssdk_clk.c is inside #if defined(APPE) or
+#if defined(HPPE), and CHIP_TYPE=MP sets neither.
+
+diff --git a/src/init/ssdk_plat.c b/src/init/ssdk_plat.c
+index a82ebf1..bc51b5d 100644
+--- a/src/init/ssdk_plat.c
++++ b/src/init/ssdk_plat.c
+@@ -98,6 +98,24 @@
+ #include "qca808x.h"
+ #endif
+ #include "hsl_port_prop.h"
++
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0))
++/*
++ * SoC predicates that the kernel-4.4 socinfo.h does not have. They are only
++ * referenced from ssdk_uniphy_valid_check(), whose every caller in ssdk_clk.c
++ * sits behind #if defined(APPE) or #if defined(HPPE) -- neither is set for
++ * CHIP_TYPE=MP -- so this only has to compile. The values are correct for
++ * IPQ5018 regardless: QSDK 5.4's own socinfo.h defines
++ *   cpu_is_uniphy1_enabled() = ipq807x || ipq60xx || ipq9570 || ipq9574
++ * so it is false on this SoC too.
++ */
++#define cpu_is_ipq53xx()         0
++#define cpu_is_ipq5302()         0
++#define cpu_is_ipq5312()         0
++#define cpu_is_ipq95xx()         0
++#define cpu_is_uniphy1_enabled() 0
++#define cpu_is_uniphy2_enabled() 0
++#endif
+ /*qca808x_start*/
+ 
+ extern struct qca_phy_priv **qca_phy_priv_global;

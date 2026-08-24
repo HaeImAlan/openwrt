@@ -1,0 +1,66 @@
+From: build fix
+Subject: [PATCH] mp: guard SFP calls with IN_SFP_PHY
+
+adpt_mp_portctrl.c calls sfp_phy_phydev_adv_update() from its flow-control
+paths without an IN_SFP_PHY guard, so the module fails to build the moment the
+SFP PHY driver is not compiled in:
+
+  adpt_mp_portctrl.c:330: implicit declaration of 'sfp_phy_phydev_adv_update'
+
+The calls sit inside "if (hsl_port_is_sfp(...))", which is always false on a
+board with no SFP cage, so the blocks are dead code here. The phy_addr locals
+feeding them are guarded too, otherwise they trip -Werror=unused-variable.
+hsl_port_is_sfp() itself lives in hsl_phy.c and stays available either way.
+
+diff --git a/src/adpt/mp/adpt_mp_portctrl.c b/src/adpt/mp/adpt_mp_portctrl.c
+index 2c983ff..4ee8483 100644
+--- a/src/adpt/mp/adpt_mp_portctrl.c
++++ b/src/adpt/mp/adpt_mp_portctrl.c
+@@ -315,12 +315,15 @@ adpt_mp_port_txfc_status_set(a_uint32_t dev_id, fal_port_t port_id,
+ {
+ 	sw_error_t rv = SW_OK;
+ 	a_bool_t force_mode = A_FALSE;
++#ifdef IN_SFP_PHY
+ 	a_uint32_t phy_addr = 0;
++#endif
+ 
+ 	if(A_FALSE == _adpt_mp_port_phy_connected (dev_id, port_id))
+ 	{
+ 		rv = _adpt_mp_port_txfc_status_set(dev_id, port_id, enable);
+ 		SW_RTN_ON_ERROR(rv);
++#ifdef IN_SFP_PHY
+ 		if(hsl_port_is_sfp(dev_id, port_id))
+ 		{
+ 			rv = hsl_port_prop_get_phyid(dev_id, port_id, &phy_addr);
+@@ -338,6 +341,7 @@ adpt_mp_port_txfc_status_set(a_uint32_t dev_id, fal_port_t port_id,
+ 				SW_RTN_ON_ERROR(rv);
+ 			}
+ 		}
++#endif
+ 	}
+ 	else
+ 	{
+@@ -421,12 +425,15 @@ adpt_mp_port_rxfc_status_set(a_uint32_t dev_id, fal_port_t port_id,
+ {
+ 	sw_error_t rv = SW_OK;
+ 	a_bool_t force_mode = A_FALSE;
++#ifdef IN_SFP_PHY
+ 	a_uint32_t phy_addr = 0;
++#endif
+ 
+ 	if(A_FALSE == _adpt_mp_port_phy_connected (dev_id, port_id))
+ 	{
+ 		rv = _adpt_mp_port_rxfc_status_set(dev_id, port_id, enable);
+ 		SW_RTN_ON_ERROR(rv);
++#ifdef IN_SFP_PHY
+ 		if(hsl_port_is_sfp(dev_id, port_id))
+ 		{
+ 			rv = hsl_port_prop_get_phyid(dev_id, port_id, &phy_addr);
+@@ -445,6 +452,7 @@ adpt_mp_port_rxfc_status_set(a_uint32_t dev_id, fal_port_t port_id,
+ 				SW_RTN_ON_ERROR(rv);
+ 			}
+ 		}
++#endif
+ 	}
+ 	else
+ 	{

@@ -1,16 +1,8 @@
-From 248437459e3ff65f83527dd03b958e365eba9b65 Mon Sep 17 00:00:00 2001
-From: hzy <hzyitc@outlook.com>
-Date: Sun, 14 Jul 2024 17:17:14 +0800
-Subject: [PATCH 1/1] add swconfig_leds support
-
+Refreshed 2026-08-24 for qca-ssdk 12.5.0.6 (a71cfe83): the ssdk_init.c
+hunk lost its `#ifndef BOARD_AR71XX` context when 12.5 dropped that guard.
 ---
- include/ref/ref_mib.h |  3 +++
- src/init/ssdk_init.c  |  3 +++
- src/ref/ref_mib.c     | 33 +++++++++++++++++++++++++++++++++
- 3 files changed, 39 insertions(+)
-
 diff --git a/include/ref/ref_mib.h b/include/ref/ref_mib.h
-index 6cb06395..09f5453d 100755
+index 6cb0639..09f5453 100755
 --- a/include/ref/ref_mib.h
 +++ b/include/ref/ref_mib.h
 @@ -42,6 +42,9 @@ qca_ar8327_sw_get_port_mib(struct switch_dev *dev,
@@ -24,24 +16,24 @@ index 6cb06395..09f5453d 100755
  #ifdef __cplusplus
  }
 diff --git a/src/init/ssdk_init.c b/src/init/ssdk_init.c
-index 5296aa98..ba179f77 100755
+index cb19864..1a5e975 100644
 --- a/src/init/ssdk_init.c
 +++ b/src/init/ssdk_init.c
-@@ -1330,6 +1330,9 @@ const struct switch_dev_ops qca_ar8327_sw_ops = {
+@@ -1262,6 +1262,9 @@ const struct switch_dev_ops qca_ar8327_sw_ops = {
  #if defined(IN_PORTCONTROL)
  	.get_port_link = qca_ar8327_sw_get_port_link,
  #endif
 +#if defined(IN_MIB)
 +	.get_port_stats = qca_ar8327_sw_get_port_stats,
 +#endif
- #ifndef BOARD_AR71XX
  #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
  	.get_reg_val = qca_ar8327_sw_get_reg_val,
+ 	.set_reg_val = qca_ar8327_sw_set_reg_val,
 diff --git a/src/ref/ref_mib.c b/src/ref/ref_mib.c
-index aeec213d..4a332d56 100644
+index 24a8c38..3c882cf 100644
 --- a/src/ref/ref_mib.c
 +++ b/src/ref/ref_mib.c
-@@ -476,6 +476,39 @@ qca_ar8327_sw_get_port_mib(struct switch_dev *dev,
+@@ -479,6 +479,39 @@ qca_ar8327_sw_get_port_mib(struct switch_dev *dev,
  
      return 0;
  }
@@ -81,6 +73,3 @@ index aeec213d..4a332d56 100644
  #endif
  
  int
--- 
-2.40.1
-

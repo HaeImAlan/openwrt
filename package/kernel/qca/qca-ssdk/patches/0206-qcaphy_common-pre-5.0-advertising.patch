@@ -1,0 +1,30 @@
+From: build fix
+Subject: [PATCH] qcaphy_common: pre-5.0 phydev->advertising is a u32
+
+Same pre-5.0 phylib gap as hsl_phy.c: before v5.0 phydev->advertising is a
+plain u32 mask, not a linkmode bitmap array, so it cannot decay to the
+a_ulong_t * that hsl_phy_linkmode_adv_to_adv() expects:
+
+  qcaphy_common.c:616: passing argument 1 of 'hsl_phy_linkmode_adv_to_adv'
+                       makes pointer from integer without a cast
+
+Take its address on old kernels. Both are 4 bytes on 32-bit ARM and the tree
+builds -fno-strict-aliasing.
+
+diff --git a/src/hsl/phy/qcaphy_common.c b/src/hsl/phy/qcaphy_common.c
+index 855590f..2e1f882 100644
+--- a/src/hsl/phy/qcaphy_common.c
++++ b/src/hsl/phy/qcaphy_common.c
+@@ -613,7 +613,12 @@ qcaphy_status_get(a_uint32_t dev_id, a_uint32_t phy_addr,
+ 				phydev->drv->name);
+ 		if(phydev->drv && !strcmp(phydev->drv->name, "Generic PHY") &&
+ 				(phydev->autoneg == AUTONEG_ENABLE)) {
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
++			rv = hsl_phy_linkmode_adv_to_adv(
++				(a_ulong_t *)&phydev->advertising, &old_adv);
++#else
+ 			rv = hsl_phy_linkmode_adv_to_adv(phydev->advertising, &old_adv);
++#endif
+ 			PHY_RTN_ON_ERROR (rv);
+ 			rv = qcaphy_get_autoneg_adv(dev_id, phy_addr, &new_adv);
+ 			PHY_RTN_ON_ERROR(rv);

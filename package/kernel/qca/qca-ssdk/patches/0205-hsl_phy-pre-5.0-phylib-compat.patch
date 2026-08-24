@@ -1,0 +1,220 @@
+From: build fix
+Subject: [PATCH] hsl_phy: pre-5.0 phylib compatibility
+
+hsl_phy.c is the last file in the MP/ipq50xx configuration that assumes a
+modern phylib. Era gaps against kernel 4.4:
+
+  struct phy_device.mdio       mdio_device split landed in v4.5; before that
+                               it is phydev->bus / ->addr / &phydev->dev
+  __mdiobus_read/write()       unlocked accessors, also v4.5
+  linkmode_* + ETHTOOL_LINK_MODE_*_BIT
+                               linkmode bitmaps landed in v5.0; before that
+                               supported/advertising are u32 masks of
+                               SUPPORTED_xxx / ADVERTISED_xxx
+  PHY_INTERFACE_MODE_USXGMII   v5.1
+  PHY_INTERFACE_MODE_10GKR     v5.2
+
+11.4.0.5 compiled the whole linkmode block out for <5.0, which is not an
+option here: qca808x_phy.c calls hsl_phy_autoneg_adv_check() and
+hsl_phy_phydev_autoneg_update(). Instead provide pre-5.0 implementations with
+identical signatures. There is no ADVERTISED_5000baseT_Full before v4.10, and
+2.5G is ADVERTISED_2500baseX_Full -- the mapping 11.4.0.5 itself used.
+
+The two in-file callers pass phydev->supported / ->advertising, which are u32
+members rather than arrays on <5.0, so they take the address (both are 4 bytes
+on 32-bit ARM and the tree builds -fno-strict-aliasing).
+
+USXGMII and 10GBASE-R are 10G interface modes that IPQ5018 does not have, so
+those switch cases drop out on old kernels.
+
+diff --git a/src/hsl/phy/hsl_phy.c b/src/hsl/phy/hsl_phy.c
+index 5879dd3..facce7a 100644
+--- a/src/hsl/phy/hsl_phy.c
++++ b/src/hsl/phy/hsl_phy.c
+@@ -57,6 +57,18 @@
+ #include <linux/i2c.h>
+ #include "ssdk_phy_i2c.h"
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0))
++/*
++ * The unlocked mdiobus accessors arrived in v4.5. Upstream __mdiobus_read()
++ * asserts the caller already holds mdio_lock and then calls bus->read, which
++ * is exactly what the callers here do.
++ */
++#define __mdiobus_read(_bus, _addr, _reg) \
++	((_bus)->read((_bus), (_addr), (_reg)))
++#define __mdiobus_write(_bus, _addr, _reg, _val) \
++	((_bus)->write((_bus), (_addr), (_reg), (_val)))
++#endif
++
+ phy_info_t *phy_info[SW_MAX_NR_DEV] = {0};
+ a_uint32_t port_bmp[SW_MAX_NR_DEV] = {0};
+ 
+@@ -513,8 +525,13 @@ qca_ssdk_phydev_to_port(a_uint32_t dev_id, struct phy_device *phydev)
+ {
+ 	a_uint32_t miibus_id = 0, phy_addr_e = 0;
+ 
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
+ 	miibus_id = ssdk_miibus_index_get(dev_id, phydev->mdio.bus);
+ 	phy_addr_e = TO_PHY_ADDR_E(phydev->mdio.addr, miibus_id);
++#else
++	miibus_id = ssdk_miibus_index_get(dev_id, phydev->bus);
++	phy_addr_e = TO_PHY_ADDR_E(phydev->addr, miibus_id);
++#endif
+ 
+ 	return qca_ssdk_phy_addr_to_port(dev_id, phy_addr_e);
+ }
+@@ -811,6 +828,53 @@ hsl_port_phydev_get(a_uint32_t dev_id, a_uint32_t port_id,
+ 	return SW_OK;
+ }
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
++/*
++ * Before v5.0 phylib has no linkmode bitmaps: phydev->supported and
++ * phydev->advertising are plain u32 masks built from the ADVERTISED_xxx
++ * and SUPPORTED_xxx constants. Keep the same signatures so callers need
++ * no changes. ADVERTISED_5000baseT_Full does not exist before v4.10, and
++ * 2.5G is spelled ADVERTISED_2500baseX_Full -- the mapping 11.4.0.5 used.
++ */
++sw_error_t
++hsl_phy_adv_to_linkmode_adv(a_uint32_t autoadv, a_ulong_t *advertising)
++{
++	a_ulong_t adv = 0;
++
++	if (autoadv & FAL_PHY_ADV_PAUSE)     adv |= ADVERTISED_Pause;
++	if (autoadv & FAL_PHY_ADV_ASY_PAUSE) adv |= ADVERTISED_Asym_Pause;
++	if (autoadv & FAL_PHY_ADV_10T_HD)    adv |= ADVERTISED_10baseT_Half;
++	if (autoadv & FAL_PHY_ADV_10T_FD)    adv |= ADVERTISED_10baseT_Full;
++	if (autoadv & FAL_PHY_ADV_100TX_HD)  adv |= ADVERTISED_100baseT_Half;
++	if (autoadv & FAL_PHY_ADV_100TX_FD)  adv |= ADVERTISED_100baseT_Full;
++	if (autoadv & FAL_PHY_ADV_1000T_FD)  adv |= ADVERTISED_1000baseT_Full;
++	if (autoadv & FAL_PHY_ADV_2500T_FD)  adv |= ADVERTISED_2500baseX_Full;
++	if (autoadv & FAL_PHY_ADV_10000T_FD) adv |= ADVERTISED_10000baseT_Full;
++
++	*advertising = adv;
++	SSDK_DEBUG("autoadv:0x%x, advertising::0x%lx\n", autoadv, *advertising);
++
++	return SW_OK;
++}
++
++sw_error_t
++hsl_phy_linkmode_adv_to_adv(a_ulong_t *advertising, a_uint32_t *autoadv)
++{
++	a_ulong_t adv = *advertising;
++
++	if (adv & ADVERTISED_Pause)           *autoadv |= FAL_PHY_ADV_PAUSE;
++	if (adv & ADVERTISED_Asym_Pause)      *autoadv |= FAL_PHY_ADV_ASY_PAUSE;
++	if (adv & ADVERTISED_10baseT_Half)    *autoadv |= FAL_PHY_ADV_10T_HD;
++	if (adv & ADVERTISED_10baseT_Full)    *autoadv |= FAL_PHY_ADV_10T_FD;
++	if (adv & ADVERTISED_100baseT_Half)   *autoadv |= FAL_PHY_ADV_100TX_HD;
++	if (adv & ADVERTISED_100baseT_Full)   *autoadv |= FAL_PHY_ADV_100TX_FD;
++	if (adv & ADVERTISED_1000baseT_Full)  *autoadv |= FAL_PHY_ADV_1000T_FD;
++	if (adv & ADVERTISED_2500baseX_Full)  *autoadv |= FAL_PHY_ADV_2500T_FD;
++	if (adv & ADVERTISED_10000baseT_Full) *autoadv |= FAL_PHY_ADV_10000T_FD;
++
++	return SW_OK;
++}
++#else
+ sw_error_t
+ hsl_phy_adv_to_linkmode_adv(a_uint32_t autoadv, a_ulong_t *advertising)
+ {
+@@ -879,6 +943,7 @@ hsl_phy_linkmode_adv_to_adv(a_ulong_t *advertising, a_uint32_t *autoadv)
+ 
+ 	return SW_OK;
+ }
++#endif
+ 
+ a_bool_t
+ hsl_phy_autoneg_adv_check(a_uint32_t dev_id, a_uint32_t phy_addr,
+@@ -892,7 +957,12 @@ hsl_phy_autoneg_adv_check(a_uint32_t dev_id, a_uint32_t phy_addr,
+ 	if(rv == SW_OK) {
+ 		if(!phydev->drv)
+ 			return A_TRUE;
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
++		hsl_phy_linkmode_adv_to_adv((a_ulong_t *)&phydev->supported,
++			&adv_supported);
++#else
+ 		hsl_phy_linkmode_adv_to_adv(phydev->supported, &adv_supported);
++#endif
+ 		if((adv & adv_supported) == adv)
+ 			return A_TRUE;
+ 	}
+@@ -919,7 +989,12 @@ hsl_phy_phydev_autoneg_update(a_uint32_t dev_id, a_uint32_t phy_addr,
+ 	{
+ 		if(autoadv != 0)
+ 		{
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
++			rv = hsl_phy_adv_to_linkmode_adv(autoadv,
++				(a_ulong_t *)&phydev->advertising);
++#else
+ 			rv = hsl_phy_adv_to_linkmode_adv(autoadv, phydev->advertising);
++#endif
+ 			SW_RTN_ON_ERROR(rv);
+ 		}
+ 	}
+@@ -1074,9 +1149,14 @@ hsl_port_phydev_get_status(a_uint32_t dev_id, a_uint32_t port_id,
+ 	phy_status->link_status = phydev->link;
+ 	phy_status->speed = phydev->speed;
+ 	phy_status->duplex = phydev->duplex;
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
++	pause = !!(phydev->advertising & ADVERTISED_Pause);
++	asym_pause = !!(phydev->advertising & ADVERTISED_Asym_Pause);
++#else
+ 	pause = linkmode_test_bit(ETHTOOL_LINK_MODE_Pause_BIT, phydev->advertising);
+ 	asym_pause = linkmode_test_bit(ETHTOOL_LINK_MODE_Asym_Pause_BIT,
+ 		phydev->advertising);
++#endif
+ 	lp_pause = phydev->pause;
+ 	lp_asym_pause = phydev->asym_pause;
+ 	mutex_unlock(&phydev->lock);
+@@ -1159,12 +1239,14 @@ a_uint32_t hsl_port_mode_to_phydev_interface(a_uint32_t dev_id,
+ 		case PORT_SGMII_FIBER:
+ 			interface = PHY_INTERFACE_MODE_1000BASEX;
+ 			break;
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0))
+ 		case PORT_USXGMII:
+ 			interface = PHY_INTERFACE_MODE_USXGMII;
+ 			break;
+ 		case PORT_10GBASE_R:
+ 			interface = PHY_INTERFACE_MODE_10GKR;
+ 			break;
++#endif
+ 		case PORT_QSGMII:
+ 			interface = PHY_INTERFACE_MODE_QSGMII;
+ 			break;
+@@ -1334,12 +1416,14 @@ hsl_port_phydev_interface_mode_status_get(a_uint32_t dev_id, a_uint32_t port_id,
+ 		case PHY_INTERFACE_MODE_1000BASEX:
+ 			*interface_mode_status = PORT_SGMII_FIBER;
+ 			break;
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 2, 0))
+ 		case PHY_INTERFACE_MODE_USXGMII:
+ 			*interface_mode_status = PORT_USXGMII;
+ 			break;
+ 		case PHY_INTERFACE_MODE_10GKR:
+ 			*interface_mode_status = PORT_10GBASE_R;
+ 			break;
++#endif
+ 		case PHY_INTERFACE_MODE_QSGMII:
+ 			*interface_mode_status = PORT_QSGMII;
+ 			break;
+@@ -2835,10 +2919,20 @@ hsl_port_combo_phy_driver_update(a_uint32_t dev_id,
+ 
+ 	mutex_lock(&phydev->lock);
+ 	eth_dev = phydev->attached_dev;
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
+ 	dev = &phydev->mdio.dev;
++#else
++	dev = &phydev->dev;
++#endif
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
++	phydev->supported = 0;
++	phydev->advertising = 0;
++	phydev->lp_advertising = 0;
++#else
+ 	linkmode_zero(phydev->supported);
+ 	linkmode_zero(phydev->advertising);
+ 	linkmode_zero(phydev->lp_advertising);
++#endif
+ 	phydev->autoneg = AUTONEG_ENABLE;
+ 
+ 	if (phy_info[dev_id]->phy_type[port_id] == SFP_PHY_CHIP)

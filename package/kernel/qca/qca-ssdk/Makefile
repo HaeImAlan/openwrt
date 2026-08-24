@@ -3,12 +3,12 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=qca-ssdk
-PKG_VERSION:=11.4.0.5
-PKG_RELEASE:=1
+PKG_VERSION:=12.5.0.6
+PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-ssdk
-PKG_SOURCE_VERSION:=a74c65c7a5263699e4217d267267a9d1f973cbf6
+PKG_SOURCE_VERSION:=a71cfe83d988116769eb5ca6847f8f6bc176e302
 PKG_MIRROR_HASH:=skip
 
 LOCAL_VARIANT=$(patsubst qca-ssdk-%,%,$(patsubst qca-ssdk-%,%,$(BUILD_VARIANT)))
@@ -98,6 +98,19 @@ else ifneq (, $(findstring $(subtarget), "ipq60xx" "ipq60xx_64"))
 else ifneq (, $(findstring $(subtarget), "ipq50xx" "ipq50xx_64"))
     QCASSDK_CONFIG_OPTS+= ISISC_ENABLE=enable
     QCASSDK_CONFIG_OPTS+= CHIP_TYPE=MP
+# ssdk 12.5's sfp_phy.c does not build on kernel 4.4: SFP_PHY_FEATURES puts an
+# #ifndef/#endif inside a macro line-continuation (illegal, only noticed once
+# the macro is expanded), and sfp_phy_phydev_adv_update() passes
+# phydev->advertising to a linkmode helper, which is a u32 not a bitmap on 4.4.
+# This board has no SFP cage; hsl_phy.c guards its SFP table entry with
+# #ifdef IN_SFP_PHY and falls back to NULL, and hsl_port_is_sfp() lives in
+# hsl_phy.c, so the driver can simply not be built.
+    QCASSDK_CONFIG_OPTS+= IN_SFP_PHY=FALSE IN_SFP=FALSE
+# MHT is the QCA8084 "Manhattan" switch, which this board does not have. Its
+# ssdk_mht_pinctrl.c wants PIN_CONFIG_OUTPUT_ENABLE, a pinconf-generic enum
+# value added in v4.20. ssdk's own config only enables MHT for
+# ipq53xx/ipq95xx/ipq60xx, so turning it off here matches upstream intent.
+    QCASSDK_CONFIG_OPTS+= MHT_ENABLE=disable
 # ifeq (, $(CONFIG_LOWMEM_FLASH))
 # ifeq (, $(findstring $(CONFIG_KERNEL_IPQ_MEM_PROFILE), 256))
 #     QCASSDK_CONFIG_OPTS+= MINI_SSDK=disable

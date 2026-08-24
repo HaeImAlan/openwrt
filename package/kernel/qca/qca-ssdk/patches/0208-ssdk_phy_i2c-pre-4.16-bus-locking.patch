@@ -1,0 +1,31 @@
+From: build fix
+Subject: [PATCH] ssdk_phy_i2c: pre-4.16 i2c bus locking
+
+i2c_lock_bus()/i2c_unlock_bus() and the I2C_LOCK_SEGMENT flag were introduced
+in v4.16 when the i2c core gained per-segment locking. On kernel 4.4 only the
+whole-adapter lock exists, and i2c_lock_adapter() is precisely what
+i2c_lock_bus(adapt, I2C_LOCK_SEGMENT) was renamed from, so the mapping is
+one-to-one with no behaviour change.
+
+diff --git a/src/init/ssdk_phy_i2c.c b/src/init/ssdk_phy_i2c.c
+index 8ac0fe6..af6bd65 100755
+--- a/src/init/ssdk_phy_i2c.c
++++ b/src/init/ssdk_phy_i2c.c
+@@ -23,6 +23,17 @@
+ #include "ssdk_plat.h"
+ #include "hsl_phy.h"
+ 
++#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0))
++/*
++ * i2c_lock_bus()/i2c_unlock_bus() and the I2C_LOCK_xxx segment flags arrived
++ * in v4.16. Before that the whole-adapter lock is the only one there is, and
++ * i2c_lock_adapter() is exactly what i2c_lock_bus(a, I2C_LOCK_SEGMENT) became.
++ */
++#define I2C_LOCK_SEGMENT             0
++#define i2c_lock_bus(_a, _f)         i2c_lock_adapter(_a)
++#define i2c_unlock_bus(_a, _f)       i2c_unlock_adapter(_a)
++#endif
++
+ #define I2C_RW_LIMIT           8
+ /******************************************************************************
+ *

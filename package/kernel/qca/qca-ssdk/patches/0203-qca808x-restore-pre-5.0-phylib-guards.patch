@@ -1,0 +1,58 @@
+From: build fix
+Subject: [PATCH] qca808x: restore pre-5.0 phylib guards
+
+12.5.0.6 unconditionally uses phylib/ethtool APIs that do not exist on
+kernel 4.4:
+
+  phy_resolve_aneg_pause()      added in v5.0
+  ETHTOOL_LINK_MODE_*_BIT       added in v4.10
+  linkmode_set_bit_array()      added in v5.x
+  struct phy_driver.get_features added in v5.3
+
+11.4.0.5 guarded all of this and used .features = PHY_GBIT_FEATURES on the
+pre-5.0 path; 12.5 dropped the guards because only >=5.4 configurations are
+built by the vendor. Restore them, matching ssdk's own <5.0 convention used
+elsewhere in this same file.
+
+diff --git a/src/hsl/phy/qca808x.c b/src/hsl/phy/qca808x.c
+index b97de5f..1bc4acf 100644
+--- a/src/hsl/phy/qca808x.c
++++ b/src/hsl/phy/qca808x.c
+@@ -522,7 +522,9 @@ static int qca808x_read_status(struct phy_device *phydev)
+ 	qca808x_phy_get_partner_ability(dev_id, phy_id, &lp_adv);
+ 	qca808x_lp_adv_to_ethtool_adv(phydev, lp_adv);
+ 	/*get the link partner pause*/
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0))
+ 	phy_resolve_aneg_pause(phydev);
++#endif
+ 
+ 	return 0;
+ }
+@@ -616,6 +618,7 @@ int qca808x_match_phy_device(struct phy_device *phydev)
+ 	return false;
+ }
+ 
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0))
+ static int qca808x_phy_read_abilities(struct phy_device *pdev)
+ {
+ 	int features[] = {
+@@ -635,6 +638,7 @@ static int qca808x_phy_read_abilities(struct phy_device *pdev)
+ 
+ 	return 0;
+ }
++#endif
+ 
+ void qca808x_phy_remove(struct phy_device *phydev)
+ {
+@@ -651,8 +655,10 @@ struct phy_driver qca808x_phy_driver = {
+ 	.phy_id		= QCA8081_PHY_V1_1,
+ 	.phy_id_mask    = 0xffffff00,
+ 	.name		= QCA808X_SSDK_PHY_DRIVER_NAME,
++#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 0, 0))
+ 	.get_features	= qca808x_phy_read_abilities,
+-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
++#else
++	.features	= PHY_GBIT_FEATURES,
+ 	.flags		= PHY_HAS_INTERRUPT,
+ #endif
+ 	.probe		= qca808x_phy_probe,

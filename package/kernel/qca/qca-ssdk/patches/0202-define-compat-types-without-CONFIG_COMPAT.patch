@@ -1,0 +1,32 @@
+From: build fix
+Subject: [PATCH] uk_interface: define compat types when !CONFIG_COMPAT
+
+compat_uptr_t and compat_ulong_t come from <linux/compat.h>, which is only
+built when CONFIG_COMPAT is set -- i.e. a 64-bit kernel running 32-bit
+userspace. On a 32-bit ARM kernel CONFIG_COMPAT is off and neither type
+exists, but sw_api_ks_ioctl.c still needs them to compile:
+
+  - input_parser()/output_parser()/sw_api_cmd() all take compat_ulong_t *
+  - the ternaries at lines 133/146/172/199 reference compat_args[] and
+    compat_ptr(), dead on this path but still parsed
+  - the !CONFIG_COMPAT compat_ptr() stub itself takes a compat_uptr_t
+
+12.5.0.6 supplies the stub function but not the types, so the build dies with
+"unknown type name 'compat_uptr_t'". Only 64-bit configurations are exercised
+by the vendor, which is why this went unnoticed.
+
+Both types are u32 on every arch that defines them, and the compat ioctl path
+(switch_compat_ioctl) stays compiled out, so this is compile-only.
+
+--- a/src/sal/sd/linux/uk_interface/sw_api_ks_ioctl.c
++++ b/src/sal/sd/linux/uk_interface/sw_api_ks_ioctl.c
+@@ -96,6 +96,9 @@
+ };
+ 
+ #ifndef CONFIG_COMPAT
++typedef u32 compat_uptr_t;
++typedef u32 compat_ulong_t;
++
+ #if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0))
+ static inline void __user *compat_ptr(compat_uptr_t uptr)
+ {
