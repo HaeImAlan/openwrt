@@ -1,0 +1,687 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+/dts-v1/;
+
+#include "ipq5018.dtsi"
+#include "ipq5018-ess.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
+
+/ {
+	model = "Xiaomi AX3000E";
+	compatible = "xiaomi,ax3000e", "qcom,ipq5018";
+
+	aliases {
+		led-boot = &led_system_blue;
+		led-failsafe = &led_system_yellow;
+		led-running = &led_system_blue;
+		led-upgrade = &led_system_yellow;
+		serial0 = &blsp1_uart1;
+	};
+
+	/* Describes the 50MHz uniphy reference the bootloader already configured
+	 * via the CMN PLL, so Linux can consume it without driving that PLL.
+	 */
+	uniphy0_ref_50mhz: uniphy0-ref-50mhz {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <50000000>;
+		clock-output-names = "uniphy0_ref_50mhz";
+	};
+
+	chosen {
+		/* Xiaomi's stock U-Boot sets bootargs to:
+		 * ubi.mtd=rootfs_1 root=mtd:ubi_rootfs rootfstype=squashfs rootwait uart_en=1
+		 * Bring-up phase boots an initramfs directly, so root= here is unused,
+		 * but keep the override so a later sysupgrade image doesn't inherit
+		 * stock's mtd naming by accident.
+		 *
+		 * earlycon MUST name msm_serial_dm, not qcom_geni: IPQ5018's UART
+		 * is "qcom,msm-uartdm" (see OF_EARLYCON_DECLARE in
+		 * drivers/tty/serial/msm_serial.c), while qcom_geni belongs to
+		 * "qcom,geni-debug-uart" on entirely different SoCs. An earlier
+		 * attempt here used qcom_geni and silently did nothing -- no
+		 * bootconsole ever registered, so ALL pre-0.13s output stayed
+		 * buffered until msm_serial came up and flushed it. That made
+		 * every early crash look like a totally silent hang. keep_bootcon
+		 * stops the bootconsole being unregistered when the real console
+		 * takes over, so nothing is lost in the handover either.
+		 */
+		bootargs-append = " ubi.mtd=rootfs root=/dev/ubiblock0_0 coherent_pool=2M earlycon=msm_serial_dm,0x78af000 keep_bootcon";
+		stdout-path = "serial0:115200n8";
+	};
+
+	keys {
+		compatible = "gpio-keys";
+
+		pinctrl-0 = <&button_pins>;
+		pinctrl-names = "default";
+
+		reset-button {
+			label = "reset";
+			gpios = <&tlmm 38 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+
+		mesh-button {
+			label = "mesh";
+			gpios = <&tlmm 28 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+
+		pinctrl-0 = <&leds_pins>;
+		pinctrl-names = "default";
+
+		led_system_blue: system-blue {
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_POWER;
+			gpios = <&tlmm 24 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_system_yellow: system-yellow {
+			color = <LED_COLOR_ID_YELLOW>;
+			function = LED_FUNCTION_POWER;
+			gpios = <&tlmm 25 GPIO_ACTIVE_HIGH>;
+		};
+	};
+};
+
+&sleep_clk {
+	clock-frequency = <32000>;
+};
+
+&xo_board_clk {
+	clock-div = <4>;
+	clock-mult = <1>;
+};
+
+&blsp1_uart1 {
+	status = "okay";
+
+	pinctrl-0 = <&serial_0_pins>;
+	pinctrl-names = "default";
+};
+
+&prng {
+	status = "okay";
+};
+
+/*
+ * Ethernet is NOT enabled in this bring-up DTS. Three attempts at
+ * enabling gmac0 (MAC0 -> IPQ5018's internal GE PHY), varying
+ * phy-mode ("internal" vs the driver's documented-correct "sgmii"),
+ * uniphy0/clock setup, and pairing with a gmac1 stub, ALL produced an
+ * identical hard SoC watchdog reset (full PBL/SBL cold reload, not a
+ * graceful kernel panic) rather than a normal probe failure or a
+ * dead link. Community precedent for this exact board family (Xiaomi
+ * CR881x, which shares this project's QSDK-fork tree with AX3000E)
+ * recommends disabling gmac0/"dp1" outright:
+ * https://forum.openwrt.org/t/ipq5018-and-motorcomm-yt9215s/239942 --
+ * on this board family WAN and LAN both go through the YT9215S switch
+ * via gmac1's SGMII+ uplink, not the internal GE PHY, which may not
+ * even be physically bonded out on these boards (a separate report
+ * for a different IPQ5018 device, the TP-Link Archer AX55 v1,
+ * explicitly notes its GE PHY isn't bonded out either -- board-
+ * specific, not a SoC-wide rule, but consistent with what was seen
+ * here). Real working ethernet on AX3000E therefore needs the
+ * YT9215S switch path, which needs the mainline yt921x DSA driver --
+ * confirmed absent from this target's 6.18 kernel (checked directly)
+ * and would need backporting, a materially bigger task. See
+ * HANDOFF.md and QUALCOMMAX_BRINGUP_PLAN.md's "After bring-up"
+ * section for where this picks up.
+ */
+
+&qfprom {
+	status = "okay";
+};
+
+&qpic_bam {
+	status = "okay";
+};
+
+/*
+ * Placeholder partition layout copied from ipq5018-redmi-ax5400.dts
+ * (same SoC boot-firmware region sizes are expected to match; the
+ * rootfs/kernel partition boundaries are NOT yet verified against
+ * AX3000E's actual stock NAND dump). Irrelevant for the initramfs
+ * bring-up image itself since it embeds its own rootfs, but needs a
+ * real cross-check against xmir-patcher/backups/mtd* before any
+ * sysupgrade/flash work happens later.
+ */
+&qpic_nand {
+	pinctrl-0 = <&qpic_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	nand@0 {
+		compatible = "spi-nand";
+		reg = <0>;
+
+		nand-ecc-engine = <&qpic_nand>;
+		/* U-Boot reports this part as F35UQA512M: 64MiB, page 2048,
+		 * spare 64, ECC 4-bit. ECC8 needs 80 bytes of OOB and does not
+		 * fit, which made spi-nand probe fail with -95. Stock's DT says
+		 * strength 4 as well. Leave it to the driver rather than
+		 * hardcoding a strength this flash cannot satisfy.
+		 */
+		nand-bus-width = <8>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "0:sbl1";
+				reg = <0x00000000 0x80000>;
+				read-only;
+			};
+
+			partition@80000 {
+				label = "0:mibib";
+				reg = <0x00080000 0x80000>;
+				read-only;
+			};
+
+			partition@100000 {
+				label = "0:bootconfig";
+				reg = <0x00100000 0x40000>;
+				read-only;
+			};
+
+			partition@140000 {
+				label = "0:bootconfig1";
+				reg = <0x00140000 0x40000>;
+				read-only;
+			};
+
+			partition@180000 {
+				label = "0:qsee";
+				reg = <0x00180000 0x100000>;
+				read-only;
+			};
+
+			partition@280000 {
+				label = "0:qsee_1";
+				reg = <0x00280000 0x100000>;
+				read-only;
+			};
+
+			partition@380000 {
+				label = "0:devcfg";
+				reg = <0x00380000 0x40000>;
+				read-only;
+			};
+
+			partition@3c0000 {
+				label = "0:devcfg_1";
+				reg = <0x003c0000 0x40000>;
+				read-only;
+			};
+
+			partition@400000 {
+				label = "0:cdt";
+				reg = <0x00400000 0x40000>;
+				read-only;
+			};
+
+			partition@440000 {
+				label = "0:cdt_1";
+				reg = <0x00440000 0x40000>;
+				read-only;
+			};
+
+			partition@480000 {
+				label = "0:appsblenv";
+				reg = <0x00480000 0x80000>;
+			};
+
+			partition@500000 {
+				label = "0:appsbl";
+				reg = <0x00500000 0x140000>;
+				read-only;
+			};
+
+			partition@640000 {
+				label = "0:appsbl_1";
+				reg = <0x00640000 0x140000>;
+				read-only;
+			};
+
+			partition@780000 {
+				label = "0:art";
+				reg = <0x00780000 0x100000>;
+				read-only;
+
+				nvmem-layout {
+					compatible = "fixed-layout";
+					#address-cells = <1>;
+					#size-cells = <1>;
+
+					mac_addr_gmac1: macaddr@0 {
+						reg = <0x0 0x6>;
+					};
+
+					mac_addr_gmac0: macaddr@6 {
+						reg = <0x6 0x6>;
+					};
+				};
+			};
+
+			partition@880000 {
+				label = "0:training";
+				reg = <0x00880000 0x80000>;
+				read-only;
+			};
+
+			partition@900000 {
+				label = "bdata";
+				reg = <0x00900000 0x80000>;
+			};
+
+			partition@980000 {
+				label = "crash";
+				reg = <0x00980000 0x80000>;
+			};
+
+			partition@a00000 {
+				label = "crash_syslog";
+				reg = <0x00a00000 0x80000>;
+			};
+
+			partition@a80000 {
+				label = "ubi_kernel";
+				reg = <0x00a80000 0x2400000>;
+			};
+
+			partition@2e80000 {
+				label = "rootfs";
+				reg = <0x02e80000 0x5180000>;
+			};
+		};
+	};
+};
+
+&tlmm {
+	mdio1_pins: mdio-state {
+		mdc-pins {
+			pins = "gpio36";
+			function = "mdc";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+		mdio-pins {
+			pins = "gpio37";
+			function = "mdio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+
+	button_pins: button-state {
+		pins = "gpio28", "gpio38";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-pull-up;
+	};
+
+	leds_pins: leds-state {
+		pins = "gpio24", "gpio25";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-pull-down;
+	};
+
+	qpic_pins: qpic-state {
+		clock-pins {
+			pins = "gpio9";
+			function = "qspi_clk";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		cs-pins {
+			pins = "gpio8";
+			function = "qspi_cs";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		data-pins {
+			pins = "gpio4", "gpio5", "gpio6", "gpio7";
+			function = "qspi_data";
+			drive-strength = <8>;
+			bias-disable;
+		};
+	};
+
+	serial_0_pins: uart0-state {
+		pins = "gpio20", "gpio21";
+		function = "blsp0_uart0";
+		bias-disable;
+	};
+};
+
+/*
+ * Ethernet (MAC0/MAC1, YT9215S switch via mdio1) is still deliberately
+ * left disabled/omitted here -- see the long comment further up this
+ * file and HANDOFF.md's "Ethernet bring-up attempt" section.
+ *
+ * WiFi: internal IPQ5018 2.4GHz radio ONLY, wired the same way the
+ * same-vendor ipq5018-redmi-ax5400.dts does it -- plain single-PD
+ * &q6v5_wcss, and NO ipq5018-qcn6122.dtsi include.
+ *
+ * Bisect history (2026-08-22), all crashing identically at [0.394]
+ * right after jffs2 init, with no oops/panic and an immediate cold
+ * reset to PBL (a TrustZone/XPU-violation signature, not a kernel bug):
+ *   1. qcn6122.dtsi + &wifi + &wifi1 (AX830-style multi-PD)  -> crash
+ *   2. qcn6122.dtsi + &wifi only, &wifi1 disabled            -> crash
+ * So the QCN6122 module is NOT the trigger. Remaining suspect was the
+ * qcn6122.dtsi itself, which swaps q6v5_wcss to the multi-PD
+ * "qcom,ipq5018-q6-mpd" compatible and grows q6_region 27MB -> 48MB.
+ * This config drops that include entirely to test the single-PD path.
+ *
+ * Note this board runs Xiaomi's own stock TrustZone firmware
+ * (BOOT.BF.3.3.1.1-00064), NOT the vendor TZ that mainline's IPQ5018
+ * reference boards (e.g. Yuncore AX830) were validated against. The
+ * QSDK fork's AX3000E DTS carried TZ-handshake properties that no
+ * mainline binding has -- qcom,multipd_arch, qcom,share_bootargs,
+ * qcom,bootargs_smem = <507>, boot-args = <...>. If the single-PD
+ * path below also dies, that mismatch is the leading theory and the
+ * next thing to dig into. See HANDOFF.md.
+ *
+ * No board-specific RF calibration exists yet (no
+ * ipq-wifi-xiaomi_ax3000e package), so ath11k falls back to whatever
+ * generic board data ships in ath11k-firmware-ipq5018. Bring-up only,
+ * NOT tuned for RF-compliant operation.
+ */
+/*
+ * CRASH SITE, found 2026-08-22 via initcall_debug: the SoC dies
+ * mid-printk during ipq_cmn_pll_clk_driver_init, right after
+ * "probe of 9b000.clock-controller returned 0". cmn_pll is the SHARED
+ * reference PLL feeding both the ethernet UNIPHY (uniphy0 takes
+ * IPQ5018_ETH_50MHZ_CLK from it) and WiFi -- which is why the earlier
+ * ethernet attempts and the WiFi attempts all died the same way. They
+ * were never two independent bugs.
+ *
+ * Theory under test here: ipq5018.dtsi carries
+ *   assigned-clocks = <&cmn_pll IPQ5018_CMN_PLL_CLK>;
+ *   assigned-clock-rates-u64 = /bits/ 64 <4800000000>;
+ * which makes the clk core REPROGRAM this PLL to 4.8GHz at probe.
+ * On this board, stock Xiaomi U-Boot/TZ has already configured the
+ * CMN PLL and other secure-side users may still depend on it, so
+ * reprogramming it out from under them plausibly triggers the
+ * immediate cold reset. Dropping the override makes Linux inherit
+ * whatever the bootloader left configured.
+ *
+ * If this lets the board boot with WiFi enabled, the proper long-term
+ * fix is a board-appropriate rate (or leaving it to the bootloader),
+ * not carrying a /delete-property/ hack -- and it should be reported
+ * upstream, since it would affect any IPQ5018 board with a stock
+ * bootloader that pre-configures this PLL.
+ */
+&q6v5_wcss {
+	firmware-name = "ath11k/IPQ5018/hw1.0/q6_fw.mdt",
+			"ath11k/IPQ5018/hw1.0/m3_fw.mdt";
+};
+
+/*
+ * TEST: cmn_pll disabled outright, matching STOCK behaviour.
+ * The stock live devicetree dump (xmir-patcher/backups/RN07_live.dts)
+ * has NO 9b000 node and no cmn_pll at all -- QSDK 4.4 never touches
+ * this PLL from Linux; SBL/U-Boot configures it and leaves it alone.
+ * Only the GCC-side gcc_cmn_blk_ahb/sys clocks and gcc_cmn_blk_bcr
+ * reset appear. "qcom,ipq5018-cmn-pll" is a NEW mainline driver with
+ * no QSDK counterpart -- and it is exactly where we die. Disabling
+ * the node stops the driver probing and touching 0x9b000 at all.
+ * Safe here because uniphy0 (its only consumer in this DTS) is also
+ * disabled while ethernet is out of scope.
+ */
+&wifi {
+	/*
+	 * DISABLED so the default image boots. To resume the investigation:
+	 * flip to "okay", add "initcall_debug ignore_loglevel" to
+	 * bootargs-append, and optionally re-add &cmn_pll{status="disabled"}
+	 * (which demonstrably moves the crash later -- see HANDOFF.md).
+	 */
+	/*
+	 * ENABLED 2026-08-24. WiFi previously cold-reset the SoC at
+	 * ipq_cmn_pll_clk_driver_init -- the same CMN PLL that ethernet needs.
+	 * That PLL is now left to the bootloader (fixed 50MHz ref for uniphy0,
+	 * cmn_pll node disabled), which fixed ethernet, so retry WiFi on the
+	 * same basis.
+	 */
+	status = "okay";
+
+	qcom,rproc = <&q6v5_wcss>;
+	qcom,ath11k-calibration-variant = "Xiaomi-AX3000E";
+	qcom,ath11k-fw-memory-mode = <1>;
+};
+
+/*
+ * Ethernet via the Motorcomm YT9215S, using the mainline yt921x DSA driver
+ * backported from v6.19 (patches 0960/0961 -- absent from 6.18). The chip
+ * table in that driver lists YT9215S as major 0x9002 mode 2, which is exactly
+ * the CHIP_ID 0x90020002 read from this board, and its header notes it was
+ * tested on "YT9215 + SGMII", the topology used here.
+ *
+ * Port map comes from the QSDK-fork work on this same board: ports 0-2 are
+ * the LAN jacks, port 3 is WAN, port 8 is the SGMII+ 2.5G CPU uplink to
+ * gmac1. Port 4 (MAC4 -> IPQ5018 internal GE PHY) is deliberately omitted --
+ * gmac0 is not enabled here, and enabling it previously produced a hard SoC
+ * reset (see the long comment earlier in this file).
+ *
+ * GPIO 39 is the switch nRESET. Timing is taken from the stock vendor
+ * module's yt_hw_reset(): drive low 100ms, release, 100ms to settle, before
+ * any MDIO access. Placed on the mdio bus node so the reset completes before
+ * the bus is scanned.
+ */
+&gmac1 {
+	status = "okay";
+
+	/* 2500base-x, not sgmii. The earlier "failed to parse stmmac dt
+	 * parameters" that prompted sgmii was actually the nvmem MAC cell
+	 * deferring on an unprobed spi-nand, not the phy-mode. With sgmii the
+	 * PCS rejects the rate outright -- "qca-uniphy: Invalid SGMII speed
+	 * 2500" / "PCS link up fail for interface sgmii" -- while stmmac still
+	 * cheerfully reports the fixed link as up, so the uplink looks fine
+	 * from above but is never actually configured.
+	 */
+	phy-mode = "2500base-x";
+
+	nvmem-cells = <&mac_addr_gmac1 0>;
+	nvmem-cell-names = "mac-address";
+
+	fixed-link {
+		speed = <2500>;
+		full-duplex;
+	};
+};
+
+&mdio1 {
+	status = "okay";
+	pinctrl-0 = <&mdio1_pins>;
+	pinctrl-names = "default";
+
+	/* An MDIO *bus* node uses reset-delay-us / reset-post-delay-us.
+	 * reset-assert-us / reset-deassert-us are PHY-node properties and are
+	 * silently ignored here -- which left the YT9215S with an almost
+	 * zero-length reset pulse. It still answered ID reads and trained the
+	 * CPU SERDES, but every FDB operation timed out ("FDB probably stuck",
+	 * -110). The stock vendor module's yt_hw_reset() drives GPIO 39 low for
+	 * 100ms, releases it, then waits another 100ms before any MDIO access.
+	 */
+	reset-gpios = <&tlmm 39 GPIO_ACTIVE_LOW>;
+	reset-delay-us = <100000>;
+	reset-post-delay-us = <100000>;
+
+	switch@1d {
+		compatible = "motorcomm,yt9215";
+		reg = <0x1d>;
+
+		/* Integrated GbE PHYs behind the switch's internal MDIO bus.
+		 * yt921x registers this bus from a child node named "mdio" and
+		 * expects the internal ports to carry a matching phy-handle.
+		 */
+		mdio {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			yt9215_phy0: ethernet-phy@0 { reg = <0>; };
+			yt9215_phy1: ethernet-phy@1 { reg = <1>; };
+			yt9215_phy2: ethernet-phy@2 { reg = <2>; };
+			yt9215_phy3: ethernet-phy@3 { reg = <3>; };
+		};
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				label = "lan1";
+				phy-mode = "internal";
+
+				/* TEST: fixed-link instead of phy-handle, so
+				 * phylib does not attach and poll these PHYs
+				 * over the switch's internal MDIO once a
+				 * second. The chip is alive with three links
+				 * up at 4.9s and completely unresponsive by
+				 * 22s, and that polling is the only switch
+				 * traffic in between -- the QSDK driver never
+				 * attached phylib PHYs at all, it just read
+				 * PORT_STATUS.
+				 */
+				fixed-link {
+					speed = <1000>;
+					full-duplex;
+				};
+			};
+
+			port@1 {
+				reg = <1>;
+				label = "lan2";
+				phy-mode = "internal";
+
+				/* TEST: fixed-link instead of phy-handle, so
+				 * phylib does not attach and poll these PHYs
+				 * over the switch's internal MDIO once a
+				 * second. The chip is alive with three links
+				 * up at 4.9s and completely unresponsive by
+				 * 22s, and that polling is the only switch
+				 * traffic in between -- the QSDK driver never
+				 * attached phylib PHYs at all, it just read
+				 * PORT_STATUS.
+				 */
+				fixed-link {
+					speed = <1000>;
+					full-duplex;
+				};
+			};
+
+			port@2 {
+				reg = <2>;
+				label = "lan3";
+				phy-mode = "internal";
+
+				/* TEST: fixed-link instead of phy-handle, so
+				 * phylib does not attach and poll these PHYs
+				 * over the switch's internal MDIO once a
+				 * second. The chip is alive with three links
+				 * up at 4.9s and completely unresponsive by
+				 * 22s, and that polling is the only switch
+				 * traffic in between -- the QSDK driver never
+				 * attached phylib PHYs at all, it just read
+				 * PORT_STATUS.
+				 */
+				fixed-link {
+					speed = <1000>;
+					full-duplex;
+				};
+			};
+
+			port@3 {
+				reg = <3>;
+				label = "wan";
+				phy-mode = "internal";
+
+				/* TEST: fixed-link instead of phy-handle, so
+				 * phylib does not attach and poll these PHYs
+				 * over the switch's internal MDIO once a
+				 * second. The chip is alive with three links
+				 * up at 4.9s and completely unresponsive by
+				 * 22s, and that polling is the only switch
+				 * traffic in between -- the QSDK driver never
+				 * attached phylib PHYs at all, it just read
+				 * PORT_STATUS.
+				 */
+				fixed-link {
+					speed = <1000>;
+					full-duplex;
+				};
+			};
+
+			port@8 {
+				reg = <8>;
+				label = "cpu";
+				ethernet = <&gmac1>;
+				phy-mode = "2500base-x";
+
+				fixed-link {
+					speed = <2500>;
+					full-duplex;
+				};
+			};
+		};
+	};
+};
+
+/*
+ * CMN PLL: keep Linux away from it entirely (2026-08-24).
+ *
+ * Enabling ethernet reintroduced the immediate cold reset to PBL that WiFi
+ * previously caused -- kernel dies at [0.38] right after jffs2 init, no oops,
+ * no panic, which is the TrustZone/XPU-violation signature. Both paths share
+ * the CMN PLL: uniphy0 takes its "ref" clock from
+ * <&cmn_pll IPQ5018_ETH_50MHZ_CLK>, so switching gmac1 on drags cmn_pll into
+ * the probe path exactly the way WiFi did.
+ *
+ * Dropping only assigned-clock-rates-u64 was NOT enough (tested: still
+ * resets), so it is not merely the 4.8GHz reprogram -- enabling the clock at
+ * all is what faults.
+ *
+ * Stock is the clue: the live stock devicetree (xmir-patcher/backups/
+ * RN07_live.dts) has no 9b000 node and no cmn_pll whatsoever. QSDK 4.4 never
+ * touches this PLL from Linux -- SBL/U-Boot configures it and leaves it
+ * alone, and ethernet works fine there. So feed uniphy0 a plain fixed 50MHz
+ * "ref" clock describing what the bootloader already set up, and disable the
+ * cmn_pll node so its driver never probes or writes 0x9b000.
+ */
+&uniphy0 {
+	clocks = <&gcc GCC_UNIPHY_AHB_CLK>,
+		 <&gcc GCC_UNIPHY_SYS_CLK>,
+		 <&gcc GCC_UNIPHY_RX_CLK>,
+		 <&gcc GCC_UNIPHY_TX_CLK>,
+		 <&uniphy0_ref_50mhz>;
+
+	/* ath11k needs to be pointed at its remoteproc explicitly, the same way
+	 * the sibling ipq5018-redmi-ax5400 does it. Without qcom,rproc the Q6
+	 * boots but QMI never completes: firmware version is exchanged and then
+	 * nothing, so phy0 appears but interface creation fails with -95.
+	 */
+	qcom,rproc = <&q6v5_wcss>;
+	qcom,ath11k-fw-memory-mode = <1>;
+
+	status = "okay";
+};
+
+&cmn_pll {
+	status = "disabled";
+};
