@@ -1,0 +1,81 @@
+From: debug
+Subject: [PATCH] DEBUG: dump yt921x internal PHY state
+
+Temporary. Remove before any real image.
+
+--- a/drivers/net/dsa/yt921x.c
++++ b/drivers/net/dsa/yt921x.c
+@@ -2814,6 +2814,47 @@
+ 	return 0;
+ }
+ 
++/* DEBUG state, see yt921x_setup(). */
++static struct yt921x_priv *yt921x_dbg_priv;
++
++static void yt921x_dbg_dump_now(const char *tag)
++{
++	struct yt921x_priv *priv = yt921x_dbg_priv;
++	struct device *dev;
++	int port;
++
++	if (!priv || !priv->mbus_int)
++		return;
++	dev = to_device(priv);
++
++	for (port = 0; port < 4; port++) {
++		int bmcr, bmsr, anar, anlp;
++		u32 st = 0xbadbad;
++
++		bmcr = mdiobus_read(priv->mbus_int, port, MII_BMCR);
++		bmsr = mdiobus_read(priv->mbus_int, port, MII_BMSR);
++		/* BMSR latches link-down; read twice for the live value */
++		bmsr = mdiobus_read(priv->mbus_int, port, MII_BMSR);
++		anar = mdiobus_read(priv->mbus_int, port, MII_ADVERTISE);
++		anlp = mdiobus_read(priv->mbus_int, port, MII_LPA);
++
++		mutex_lock(&priv->reg_lock);
++		yt921x_reg_read(priv, YT921X_PORTn_STATUS(port), &st);
++		mutex_unlock(&priv->reg_lock);
++
++		dev_info(dev,
++			 "YTPHY %s port%d BMCR=%04x BMSR=%04x ANAR=%04x ANLPAR=%04x PORT_STATUS=%08x\n",
++			 tag, port, bmcr, bmsr, anar, anlp, st);
++	}
++}
++
++static void yt921x_dbg_dump(struct work_struct *work)
++{
++	yt921x_dbg_dump_now("LATE");
++}
++
++static DECLARE_DELAYED_WORK(yt921x_dbg_work, yt921x_dbg_dump);
++
+ static int yt921x_dsa_setup(struct dsa_switch *ds)
+ {
+ 	struct yt921x_priv *priv = to_yt921x_priv(ds);
+@@ -2906,6 +2947,10 @@
+ 		of_node_put(child);
+ 		if (res)
+ 			return res;
++
++		/* DEBUG: read the PHYs immediately, before DSA attaches them */
++		yt921x_dbg_priv = priv;
++		yt921x_dbg_dump_now("EARLY");
+ 	}
+ 
+ 	/* External mdio bus is optional */
+@@ -3056,6 +3101,14 @@
+ 
+ 	mdiodev_set_drvdata(mdiodev, priv);
+ 
++	/* DEBUG: 20s after registration, once autoneg has had time to run,
++	 * dump the internal PHYs and the switch's own per-port status. This
++	 * separates "PHY powered down / never negotiated" from "PHY has link
++	 * but the switch does not report it".
++	 */
++	yt921x_dbg_priv = priv;
++	schedule_delayed_work(&yt921x_dbg_work, msecs_to_jiffies(20000));
++
+ 	return dsa_register_switch(ds);
+ }
+ 
