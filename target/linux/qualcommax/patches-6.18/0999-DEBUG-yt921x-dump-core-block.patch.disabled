@@ -1,0 +1,35 @@
+From: debug
+Subject: [PATCH] DEBUG: dump yt921x register blocks
+
+Temporary. Dumps the blocks covered by the stock capture so they can be
+diffed against it. Remove before any real image.
+
+--- a/drivers/net/dsa/yt921x.c
++++ b/drivers/net/dsa/yt921x.c
+@@ -2854,6 +2854,26 @@
+ 	if (res)
+ 		return res;
+ 
++	/* DEBUG: dump the register blocks covered by the stock capture in
++	 * reference/stock_yt9215s_registers.txt so they can be diffed.
++	 */
++	{
++		static const u32 bases[] = { 0x80000, 0x30000, 0x40000, 0xd0000 };
++		unsigned int bi;
++		u32 addr, v;
++
++		for (bi = 0; bi < ARRAY_SIZE(bases); bi++) {
++			for (addr = bases[bi]; addr <= bases[bi] + 0xfc; addr += 4) {
++				mutex_lock(&priv->reg_lock);
++				if (yt921x_reg_read(priv, addr, &v))
++					v = 0xbadbad;
++				mutex_unlock(&priv->reg_lock);
++				dev_info(to_device(priv), "YTDUMP %05x %08x\n",
++					 addr, v);
++			}
++		}
++	}
++
+ 	/* Register the internal mdio bus. Nodes for internal ports should have
+ 	 * proper phy-handle pointing to their PHYs. Not enabling the internal
+ 	 * bus is possible, though pretty wired, if internal ports are not used.
