@@ -1,0 +1,56 @@
+From: board fix
+Subject: [PATCH] net: dsa: yt921x: program the CPU uplink registers
+
+Dumping the switch's 0x80000 block after setup and diffing it against a
+capture taken from a working vendor boot showed the CPU uplink left in a
+non-functional state: EXTIF0 disabled, the SERDES back in SGMII instead of
+2500BASE-X, and PORT_CTRL(8) carrying the ordinary user-port value.
+phylink still reports the fixed link as up, so this is invisible from
+above, but no frame can reach the CPU.
+
+--- a/drivers/net/dsa/yt921x.c
++++ b/drivers/net/dsa/yt921x.c
+@@ -188,6 +188,16 @@
+ 	return priv->reg_ops->read(priv->reg_ctx, reg, valp);
+ }
+ 
++/* CPU-uplink registers, values taken from a known-good vendor boot on the
++ * Xiaomi AX3000E (YT9215S). See yt921x_setup().
++ */
++#define YT921X_EXTIF_CTRL		0x80028
++#define YT921X_EXTIF_CTRL_EXTIF0_EN	0x1
++#define YT921X_SGMII_CTRL0		0x8008c
++#define YT921X_SGMII_CTRL0_2500BASEX	0x27a
++#define YT921X_PORT_CTRL_CPU		0x80120
++#define YT921X_PORT_CTRL_CPU_2500FD	0x1fc
++
+ /* Undocumented: global port-enable mask (see yt921x_setup()). */
+ #define YT921X_PORT_EN			0x8002c
+ #define YT921X_PORT_EN_ALL		0x1fff
+@@ -2819,6 +2829,26 @@
+ 		 */
+ 		res = yt921x_reg_write(priv, YT921X_PORT_EN, YT921X_PORT_EN_ALL);
+ 	}
++	if (!res) {
++		/* Match the CPU-uplink state of a known-good vendor boot. A
++		 * dump of the 0x80000 block after setup differed from the
++		 * stock capture in exactly these registers, and with EXTIF0
++		 * disabled nothing can cross to the CPU no matter what phylink
++		 * reports for the fixed link.
++		 *
++		 *   EXTIF_CTRL   0x0     -> 0x1     (enable EXTIF0)
++		 *   SGMII_CTRL0  0x7a    -> 0x27a   (2500BASE-X, not SGMII)
++		 *   PORT_CTRL(8) 0x7fa   -> 0x1fc   (forced 2500/full, AN off)
++		 */
++		res = yt921x_reg_write(priv, YT921X_EXTIF_CTRL,
++				       YT921X_EXTIF_CTRL_EXTIF0_EN);
++		if (!res)
++			res = yt921x_reg_write(priv, YT921X_SGMII_CTRL0,
++					       YT921X_SGMII_CTRL0_2500BASEX);
++		if (!res)
++			res = yt921x_reg_write(priv, YT921X_PORT_CTRL_CPU,
++					       YT921X_PORT_CTRL_CPU_2500FD);
++	}
+ 	mutex_unlock(&priv->reg_lock);
+ 
+ 	/* DEBUG: dump the 0x80000 core block so it can be diffed against the
