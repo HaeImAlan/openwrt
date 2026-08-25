@@ -91,7 +91,8 @@ define Device/xiaomi_ax3000e
   DEVICE_PACKAGES := \
         ATH11K_MEM_PROFILE_256M \
         ath11k-firmware-ipq5018 \
-        ath11k-firmware-qcn6122
+        ath11k-firmware-qcn6122 \
+        ipq-wifi-xiaomi_ax3000e
 endef
 TARGET_DEVICES += xiaomi_ax3000e
 

@@ -52,6 +52,7 @@ ALLWIFIBOARDS:= \
 	plasmacloud_pa2200 \
 	qxwlan_e2600ac \
 	redmi_ax3000 \
+	xiaomi_ax3000e \
 	xiaomi_cr881x
 
 ALLWIFIPACKAGES:=$(foreach BOARD,$(ALLWIFIBOARDS),ipq-wifi-$(BOARD))
@@ -144,6 +145,11 @@ $(eval $(call generate-ipq-wifi-package,plasmacloud_pa1200,Plasma Cloud PA1200))
 $(eval $(call generate-ipq-wifi-package,plasmacloud_pa2200,Plasma Cloud PA2200))
 $(eval $(call generate-ipq-wifi-package,qxwlan_e2600ac,Qxwlan E2600AC))
 $(eval $(call generate-ipq-wifi-package,redmi_ax3000,Redmi AX3000))
+# No dedicated AX3000E calibration exists yet; board-id 0x10/0x24/0x60 entries
+# are identical to Redmi AX3000's, which shares the same ath11k board-id
+# selection logic (see hotplug.d/firmware/10-ath11k-board_id and
+# 11-ath11k-caldata) -- reused verbatim as an interim board file.
+$(eval $(call generate-ipq-wifi-package,xiaomi_ax3000e,Xiaomi AX3000E))
 $(eval $(call generate-ipq-wifi-package,xiaomi_cr881x,Xiaomi CR881x))
 
 $(foreach PACKAGE,$(ALLWIFIPACKAGES),$(eval $(call BuildPackage,$(PACKAGE))))
