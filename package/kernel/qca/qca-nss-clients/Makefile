@@ -2,12 +2,12 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=qca-nss-clients
-PKG_VERSION:=NHSS.QSDK.11.5.0.5
+PKG_VERSION:=NHSS.QSDK.12.5.0.6
 PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-clients
-PKG_SOURCE_VERSION:=30742bb1decd5fe7b4e01be8081ab0a99c1f6888
+PKG_SOURCE_VERSION:=1bcef1647804d08e3d00b6f651086878786494e0
 PKG_MIRROR_HASH:=skip
 
 PKG_BUILD_DEPENDS := PACKAGE_kmod-qca-nss-crypto:kmod-qca-nss-crypto

@@ -1,0 +1,24 @@
+From: OpenWrt AX3000E port
+Date: Mon Aug 24 2026
+Subject: [PATCH] remoteproc: qcom_rproc: forward-declare struct device
+
+qcom_get_ssr_subdev_name() takes a `struct device *` parameter but the
+header never forward-declares (or includes) struct device, only
+struct notifier_block. GCC treats the first appearance of the struct
+name inside a parameter list as a local declaration scoped to that
+prototype ("declared inside parameter list will not be visible
+outside of this definition or declaration"), which is legal C but
+warned on; with -Werror (as used by the mac80211 backports build)
+this is a hard build failure. Never reached before because the
+mac80211/coccinelle backports step failed earlier in the build.
+
+--- a/include/linux/remoteproc/qcom_rproc.h
++++ b/include/linux/remoteproc/qcom_rproc.h
+@@ -2,6 +2,7 @@
+ #define __QCOM_RPROC_H__
+
+ struct notifier_block;
++struct device;
+
+ #if IS_ENABLED(CONFIG_QCOM_RPROC_COMMON)
+

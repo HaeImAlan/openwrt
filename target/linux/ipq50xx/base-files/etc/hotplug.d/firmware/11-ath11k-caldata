@@ -6,22 +6,63 @@
 
 board=$(board_name)
 
+# Splices live per-device calibration bytes (read fresh from 0:ART) into a
+# copy of a checked-in board-2.bin template whose payload region is all
+# zero. The template only encodes the container format/keys; no vendor
+# calibration data is shipped. Byte offsets were derived once by diffing two
+# ath11k-bdencoder builds with different placeholder payloads.
+build_board2() {
+	local template=$1
+	local dest_offset=$(($2))
+	local src_offset=$(($3))
+	local count=131072
+	local mtd
+
+	mtd=$(find_mtd_chardev "0:ART")
+	[ -n "$mtd" ] || caldata_die "no mtd device found for partition 0:ART"
+
+	cp "$template" "/lib/firmware/$FIRMWARE" || caldata_die "failed to copy board-2.bin template"
+	dd if="$mtd" of="/lib/firmware/$FIRMWARE" bs=$count \
+		skip=$src_offset iflag=skip_bytes,fullblock \
+		seek=$dest_offset oflag=seek_bytes \
+		count=1 conv=notrunc 2>/dev/null || \
+		caldata_die "failed to splice calibration data into board-2.bin"
+}
+
 case "$FIRMWARE" in
-	"ath11k/IPQ5018/hw1.0/caldata.bin")
+	"ath11k/IPQ5018/hw1.0/caldata.bin"|\
+	"ath11k/IPQ5018/hw1.0/board.bin")
 		case "$board" in
 			cmcc,rax3000q|\
 			redmi,ax3000|\
+			xiaomi,ax3000e|\
 			xiaomi,cr881x)
 				caldata_extract "0:ART" 0x1000 0x20000
 				;;
 		esac
 		;;
-	"ath11k/qcn6122/hw1.0/caldata_1.bin")
+	"ath11k/IPQ5018/hw1.0/board-2.bin")
+		case "$board" in
+			xiaomi,ax3000e)
+				build_board2 /usr/lib/ath11k-templates/board-2-ipq5018.tmpl 196 0x1000
+				;;
+		esac
+		;;
+	"ath11k/qcn6122/hw1.0/caldata_1.bin"|\
+	"ath11k/qcn6122/hw1.0/board.bin")
 		case "$board" in
 			cmcc,rax3000q|\
 			redmi,ax3000|\
+			xiaomi,ax3000e|\
 			xiaomi,cr881x)
 				caldata_extract "0:ART" 0x26800 0x20000
+				;;
+		esac
+		;;
+	"ath11k/qcn6122/hw1.0/board-2.bin")
+		case "$board" in
+			xiaomi,ax3000e)
+				build_board2 /usr/lib/ath11k-templates/board-2-qcn6122.tmpl 196 0x26800
 				;;
 		esac
 		;;

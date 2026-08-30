@@ -2,12 +2,12 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=qca-nss-dp
-PKG_VERSION:=NHSS.QSDK.11.5.0.5
+PKG_VERSION:=NHSS.QSDK.12.5.0.6
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-dp
-PKG_SOURCE_VERSION:=480f036cc96d4e5faa426cfcf90fa7e64dff87e8
+PKG_SOURCE_VERSION:=21512774615fa1f36785d3e8253a03225d26eb30
 PKG_MIRROR_HASH:=skip
 
 include $(INCLUDE_DIR)/package.mk

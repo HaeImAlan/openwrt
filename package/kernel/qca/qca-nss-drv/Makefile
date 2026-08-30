@@ -2,12 +2,12 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=qca-nss-drv
-PKG_VERSION:=NHSS.QSDK.11.5.0.5
+PKG_VERSION:=NHSS.QSDK.12.5.0.6
 PKG_RELEASE:=2
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/nss-drv
-PKG_SOURCE_VERSION:=7563fe37340ec4a28b7821a0ac17608ff30e2a85
+PKG_SOURCE_VERSION:=53a0dc122ec7dc098ba7057147be3916f17de197
 PKG_MIRROR_HASH:=skip
 
 NSS_CLIENTS_DIR:=$(TOPDIR)/qca/src/qca-nss-clients
@@ -104,6 +104,7 @@ DRV_MAKE_OPTS+=NSS_DRV_C2C_ENABLE=n \
         NSS_DRV_SJACK_ENABLE=n \
         NSS_DRV_TLS_ENABLE=n \
         NSS_DRV_TRUSTSEC_ENABLE=n \
+        NSS_DRV_TRUSTSEC_RX_ENABLE=n \
         NSS_DRV_TSTAMP_ENABLE=n \
         NSS_DRV_TUN6RD_ENABLE=n \
         NSS_DRV_TUNIPIP6_ENABLE=n \

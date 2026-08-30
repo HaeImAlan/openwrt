@@ -2,12 +2,12 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=qca-nss-ecm
-PKG_VERSION:=NHSS.QSDK.11.5.0.5.1
+PKG_VERSION:=NHSS.QSDK.12.5.0.6
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-nss-ecm
-PKG_SOURCE_VERSION:=2ee73530d3bf7b6c0e00707daf98ce04d7e0503d
+PKG_SOURCE_VERSION:=92c7fa1c84be726395fb82d087d1b0dcee01f786
 PKG_MIRROR_HASH:=skip
 
 LOCAL_VARIANT=$(patsubst qca-nss-ecm-%,%,$(patsubst qca-nss-ecm-%,%,$(BUILD_VARIANT)))

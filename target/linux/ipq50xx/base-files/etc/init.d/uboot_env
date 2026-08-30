@@ -7,6 +7,7 @@ START=99
 boot() {
 	case $(board_name) in
 		redmi,ax3000|\
+		xiaomi,ax3000e|\
 		xiaomi,cr881x)
 			fw_printenv >/dev/null || return 0
 

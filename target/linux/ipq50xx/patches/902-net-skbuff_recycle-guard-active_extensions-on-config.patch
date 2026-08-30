@@ -1,0 +1,27 @@
+From: OpenWrt AX3000E port
+Date: Mon Aug 24 2026
+Subject: [PATCH] net: skbuff_recycle: guard active_extensions on CONFIG_SKB_EXTENSIONS
+
+skb->active_extensions is only compiled into struct sk_buff when
+CONFIG_SKB_EXTENSIONS is enabled (see include/linux/skbuff.h, which
+guards every other reference to this field the same way). This
+targets kernel config leaves CONFIG_SKB_EXTENSIONS off (it is a
+select-only, promptless Kconfig bool with no board here selecting
+it), so skbuff_recycle.h unconditional reference to the field is a
+hard compile error. Guard it like upstream does everywhere else; skip
+the check entirely when extensions are not compiled in, which is safe
+since no skb can have any active extensions in that case.
+
+--- a/net/core/skbuff_recycle.h
++++ b/net/core/skbuff_recycle.h
+@@ -158,8 +158,10 @@
+ 	if (unlikely(skb_pfmemalloc(skb)))
+ 		return false;
+ 
++#ifdef CONFIG_SKB_EXTENSIONS
+ 	if (skb->active_extensions)
+ 		return false;
++#endif
+ 
+ 	return true;
+ }

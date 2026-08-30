@@ -12,6 +12,14 @@ ipq50xx_setup_interfaces()
 				"1:lan:1" "2:lan:2" "3:lan:3" \
 				"4:wan"
 			;;
+		xiaomi,ax3000e)
+			# Only one CPU port (8). LAN and WAN ride it as separate
+			# 802.1q VLANs; highest front jack (port 3) is WAN.
+			ucidef_add_switch "switch0" \
+				"8t@eth1" \
+				"0:lan:1" "1:lan:2" "2:lan:3" \
+				"3:wan"
+			;;
 		xiaomi,cr881x)
 			ucidef_add_switch "switch0" \
 				"8u@eth1" "4u@eth0" \

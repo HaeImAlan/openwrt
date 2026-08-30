@@ -8,10 +8,10 @@ CPU_TYPE:=cortex-a53
 FEATURES:=fpu ramdisk nand squashfs pcie
 
 KERNEL_PATCHVER:=5.4
-LINUX_VERSION-5.4:=-qsdk-11.5.0.5
+LINUX_VERSION-5.4:=-qsdk-12.5.0.6
 
 CONFIG_KERNEL_GIT_CLONE_URI:=https://git.codelinaro.org/clo/qsdk/oss/kernel/linux-ipq-5.4
-CONFIG_KERNEL_GIT_REF:=d5fcb18e5420670c8734c6a659873e73adab6dac
+CONFIG_KERNEL_GIT_REF:=cedcc90e01ee429b50bd4bc72f1e6a67269ae12b
 
 include $(INCLUDE_DIR)/target.mk
 

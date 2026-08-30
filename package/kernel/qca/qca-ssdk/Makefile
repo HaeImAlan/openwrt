@@ -3,12 +3,12 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=qca-ssdk
-PKG_VERSION:=NHSS.QSDK.11.5.0.5
+PKG_VERSION:=NHSS.QSDK.12.5.0.6
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://git.codelinaro.org/clo/qsdk/oss/lklm/qca-ssdk
-PKG_SOURCE_VERSION:=0d6d410637648b1bea0dede48d3fab791689cfce
+PKG_SOURCE_VERSION:=a71cfe83d988116769eb5ca6847f8f6bc176e302
 PKG_MIRROR_HASH:=skip
 
 ifeq ($(CONFIG_TARGET_ipq),y)
