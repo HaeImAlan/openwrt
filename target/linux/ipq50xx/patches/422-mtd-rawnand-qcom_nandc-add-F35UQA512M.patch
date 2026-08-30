@@ -1,0 +1,28 @@
+From: HaeImAlan <me@haeimalan.com>
+Date: Sun, 31 Aug 2026 00:00:00 +0800
+Subject: [PATCH] mtd: rawnand: qcom_nandc: add FORESEE F35UQA512M to the serial-NAND ID table
+
+The AX3000E (RN07 / AP-MP03.3) carries a FORESEE F35UQA512M SPI-NAND,
+JEDEC id {0xcd, 0x60}. QSDK 12.5.0.6's qspinand_flash_ids_2k[] lists only
+a Macronix part, so nand_scan_with_ids() cannot identify the chip:
+"No NAND device found", no MTD partitions, and the boot dies at
+"UBI error: cannot open mtd rootfs, error -2".
+
+Geometry and ECC match the entry the 4.4 fork already carries in
+patch 422 (2 KiB page, 64 B OOB, 128 KiB erase block, 4-bit ECC per
+512 B). The 4-bit strength is the part's real requirement -- the
+mainline spinand table's NAND_ECCREQ(1, 512) for this chip is wrong and
+produces an on-flash layout the vendor U-Boot cannot decode.
+
+--- a/drivers/mtd/nand/raw/qcom_nandc.c
++++ b/drivers/mtd/nand/raw/qcom_nandc.c
+@@ -318,6 +318,9 @@
+ 	{"MX35UF4GE4AD-Z4I SPI NAND 1G 1.8V",
+ 			{ .id = {0xc2, 0xb7} },
+ 		SZ_2K, SZ_256, SZ_128K, 0, 2, 128, NAND_ECC_INFO(8, SZ_512), 0},
++	{"F35UQA512M SPI NAND 512M-BIT",
++			{ .id = {0xcd, 0x60} },
++		SZ_2K, SZ_64, SZ_128K, 0, 2, 64, NAND_ECC_INFO(4, SZ_512), 0},
+ 	{NULL}
+ };
+ 

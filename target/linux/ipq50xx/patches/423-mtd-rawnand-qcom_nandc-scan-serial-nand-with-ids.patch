@@ -1,0 +1,32 @@
+From: HaeImAlan <me@haeimalan.com>
+Date: Sun, 31 Aug 2026 00:00:00 +0800
+Subject: [PATCH] mtd: rawnand: qcom_nandc: always scan serial NAND with the 2k ID table
+
+qcom_nandc only consults qspinand_flash_ids_2k[] when nandc->boot_layout
+is set. That flag is a runtime sysfs toggle which defaults to false and
+is never set before probe, so on a normal boot the serial-NAND path falls
+through to nand_scan(), which searches the generic nand_flash_ids[] table
+instead -- where this SoC's serial parts are not listed at all. The
+vendor's own ID table is therefore unreachable in exactly the case it
+exists for.
+
+Always scan with the serial table on the serial-NAND path.
+
+Note this is the 5.4 fork's shape of the problem only. The 4.4 fork
+defines nand_flash_ids[] inside qcom_nandc.c and reaches it via plain
+nand_scan(), so it needs the ID entry alone and no control-flow change.
+
+--- a/drivers/mtd/nand/raw/qcom_nandc.c
++++ b/drivers/mtd/nand/raw/qcom_nandc.c
+@@ -3787,10 +3787,7 @@
+ 
+ 	if (nandc->props->is_serial_nand) {
+ 		qspi_nand_init(nandc);
+-		if (nandc->boot_layout)
+-			ret = nand_scan_with_ids(chip, 1, qspinand_flash_ids_2k);
+-		else
+-			ret = nand_scan(chip, 1);
++		ret = nand_scan_with_ids(chip, 1, qspinand_flash_ids_2k);
+ 	} else {
+ 		ret = nand_scan(chip, 1);
+ 	}

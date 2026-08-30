@@ -1,0 +1,26 @@
+From: HaeImAlan <me@haeimalan.com>
+Date: Sun, 31 Aug 2026 00:00:00 +0800
+Subject: [PATCH] ath11k: ahb: opt into firmware recovery on the AHB path
+
+ath11k_core_ssr_notifier_cb() (core.c:1308) and ath11k_coredump_build()
+both call BUG_ON(1) when ab->fw_recovery_support is clear, so any Q6
+firmware crash panics the kernel instead of being recovered by SSR.
+
+The flag is only ever assigned in pci.c, and only to false, so no AHB
+board can ever have it set - including this one, where the QCN6122 radio
+sits on AHB. Set it in the AHB probe path so an SSR event is handled
+gracefully: stats are dumped, the radio restarts, and the box stays up.
+
+Observed on the Xiaomi AX3000E (IPQ5018): before this, a firmware
+assertion during WiFi bring-up took the whole kernel down.
+
+--- a/drivers/net/wireless/ath/ath11k/ahb.c
++++ b/drivers/net/wireless/ath/ath11k/ahb.c
+@@ -959,6 +959,7 @@
+ 	ab->fw_mode = ATH11K_FIRMWARE_MODE_NORMAL;
+ 	ab->enable_cold_boot_cal = ath11k_cold_boot_cal;
+ 	ab->userpd_id = userpd_id;
++	ab->fw_recovery_support = true;
+ 
+ 	mutex_lock(&dev_init_lock);
+ 	left = wait_event_timeout(ath11k_radio_prb_wq, dev_init_progress == false,
