@@ -1,0 +1,107 @@
+From: local
+Date: Sat, 29 Aug 2026 00:00:00 +0000
+Subject: [PATCH] ath11k: bound the retry on a monitor status buffer that never reports DONE
+
+ath11k_dp_rx_reap_mon_status_ring() checks each monitor status buffer for
+the HAL_RX_STATUS_BUFFER_DONE tag. When it is absent the driver assumes the
+DMA is merely still in flight: it leaves the ring head pointer unchanged,
+sets DP_MON_STATUS_NO_DMA and breaks, so the same entry is re-examined on
+the next poll.
+
+That assumption does not always hold. Observed on IPQ5018/QCN6122, the
+buffer contained HAL_RX_MSDU_END (0xd2) rather than HAL_RX_STATUS_BUFFER_DONE
+(0x140) - a valid descriptor of the wrong type, for which the DONE bit is
+never going to appear. The ring then never advances and the driver re-reads
+the same entry at NAPI poll rate indefinitely, emitting
+
+  ath11k soc:wifi1@c000000: mon status DONE not set d2, buf_id 106
+
+a few thousand times a second until the driver is reinitialised. There is no
+escape path: DP_MON_STATUS_NO_DMA is assigned here and read nowhere in the
+driver, and the states that are consumed (MATCH, LEAD) are reachable only
+under hw_params.full_monitor_mode, which is false for both ipq5018 hw1.0 and
+qcn6122.
+
+Count consecutive failures on the same buf_id and, past a threshold, drop
+that buffer and let the ring advance - the same recovery the neighbouring
+"invalid buf_id" path already performs. A late DMA still gets the original
+retry behaviour; only a permanently wrong descriptor is discarded.
+
+--- a/drivers/net/wireless/ath/ath11k/dp.h
++++ b/drivers/net/wireless/ath/ath11k/dp.h
+@@ -168,6 +168,8 @@
+ 	u16 chan_noise_floor;
+ 	bool hold_mon_dst_ring;
+ 	u32 mon_status_buf_state;
++	int mon_status_stuck_buf_id;
++	u32 mon_status_stuck_cnt;
+ 	dma_addr_t mon_status_paddr;
+ 
+ 	struct dp_full_mon_mpdu *mon_mpdu;
+--- a/drivers/net/wireless/ath/ath11k/dp_rx.c
++++ b/drivers/net/wireless/ath/ath11k/dp_rx.c
+@@ -16,6 +16,8 @@
+ #include "dp_rx.h"
+ #include "hal_rx.h"
+ #include "dp_tx.h"
++
++#define ATH11K_MON_STATUS_STUCK_MAX	8
+ #include "peer.h"
+ #include "nss.h"
+ 
+@@ -3847,6 +3849,45 @@
+ 			tlv = (struct hal_tlv_hdr *)skb->data;
+ 			if (FIELD_GET(HAL_TLV_HDR_TAG, tlv->tl) !=
+ 					HAL_RX_STATUS_BUFFER_DONE) {
++				if (pmon->mon_status_stuck_buf_id == (int)buf_id) {
++					pmon->mon_status_stuck_cnt++;
++				} else {
++					pmon->mon_status_stuck_buf_id = buf_id;
++					pmon->mon_status_stuck_cnt = 1;
++				}
++
++				/* The hold-and-retry below assumes the DONE bit
++				 * is merely late. If the buffer holds a
++				 * descriptor of an entirely different type it
++				 * will never be set, and re-reading the same
++				 * entry livelocks the ring at NAPI poll rate.
++				 * Give up on it and let the ring advance.
++				 */
++				if (pmon->mon_status_stuck_cnt >
++				    ATH11K_MON_STATUS_STUCK_MAX) {
++					ath11k_warn(ab,
++						    "mon status buf_id %d stuck at tag %lx for %u polls, dropping\n",
++						    buf_id,
++						    FIELD_GET(HAL_TLV_HDR_TAG,
++							      tlv->tl),
++						    pmon->mon_status_stuck_cnt);
++
++					pmon->mon_status_stuck_buf_id = -1;
++					pmon->mon_status_stuck_cnt = 0;
++
++					spin_lock_bh(&rx_ring->idr_lock);
++					idr_remove(&rx_ring->bufs_idr, buf_id);
++					spin_unlock_bh(&rx_ring->idr_lock);
++
++					dma_unmap_single(ab->dev, rxcb->paddr,
++							 skb->len + skb_tailroom(skb),
++							 DMA_FROM_DEVICE);
++					dev_kfree_skb_any(skb);
++
++					pmon->mon_status_buf_state = DP_MON_STATUS_REPLINISH;
++					goto move_next;
++				}
++
+ 				ath11k_warn(ab, "mon status DONE not set %lx, buf_id %d\n",
+ 					    FIELD_GET(HAL_TLV_HDR_TAG,
+ 						      tlv->tl), buf_id);
+@@ -3860,6 +3901,9 @@
+ 				pmon->mon_status_buf_state = DP_MON_STATUS_NO_DMA;
+ 				break;
+ 			}
++
++			pmon->mon_status_stuck_buf_id = -1;
++			pmon->mon_status_stuck_cnt = 0;
+ 
+ 			spin_lock_bh(&rx_ring->idr_lock);
+ 			idr_remove(&rx_ring->bufs_idr, buf_id);
