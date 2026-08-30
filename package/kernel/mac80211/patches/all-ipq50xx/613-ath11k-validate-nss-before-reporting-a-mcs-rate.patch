@@ -1,0 +1,84 @@
+From: HaeImAlan <me@haeimalan.com>
+Date: Sun, 31 Aug 2026 02:00:00 +0800
+Subject: [PATCH] ath11k: validate nss before reporting an MCS rate to mac80211
+
+ath11k_dp_rx_h_rate() copies rate_mcs and nss straight out of the RX
+descriptor. It sets rx_status->encoding before validating anything, and
+never checks nss at all, so a descriptor reporting nss == 0 produces an
+rx_status that is marked HT/VHT/HE with nss == 0.
+
+mac80211 rejects that in ieee80211_rx_list():
+
+  WARNING: net/mac80211/rx.c:5043 ieee80211_rx_list
+  Rate marked as a VHT rate but data is invalid: MCS: 0, NSS: 0
+
+and drops the frame. On IPQ5018/QCN6122 this is reachable in normal
+operation and the drop is followed by an oops in the ath11k RX path.
+
+The HT case is worse than a warning: rate_idx is computed as
+rate_mcs + (8 * (nss - 1)), so nss == 0 underflows and can produce an
+out-of-range MCS index.
+
+Validate mcs and nss together, and only mark the encoding once the
+values are known good - a frame with unusable rate metadata is then
+reported as legacy instead of being dropped.
+
+The same unguarded code is present in ath11k upstream.
+
+--- a/drivers/net/wireless/ath/ath11k/dp_rx.c
++++ b/drivers/net/wireless/ath/ath11k/dp_rx.c
+@@ -2923,13 +2923,13 @@
+ 								is_cck);
+ 		break;
+ 	case RX_MSDU_START_PKT_TYPE_11N:
+-		rx_status->encoding = RX_ENC_HT;
+-		if (rate_mcs > ATH11K_HT_MCS_MAX) {
++		if (rate_mcs > ATH11K_HT_MCS_MAX || !nss || nss > 8) {
+ 			ath11k_warn(ar->ab,
+-				    "Received with invalid mcs in HT mode %d\n",
+-				     rate_mcs);
++				    "Received with invalid mcs/nss in HT mode %d/%d\n",
++				     rate_mcs, nss);
+ 			break;
+ 		}
++		rx_status->encoding = RX_ENC_HT;
+ 		rx_status->rate_idx = rate_mcs + (8 * (nss - 1));
+ 		if (sgi)
+ 			rx_status->enc_flags |= RX_ENC_FLAG_SHORT_GI;
+@@ -2939,27 +2939,27 @@
+ 			rx_status->enc_flags |= RX_ENC_FLAG_LDPC;
+ 		break;
+ 	case RX_MSDU_START_PKT_TYPE_11AC:
+-		rx_status->encoding = RX_ENC_VHT;
+-		rx_status->rate_idx = rate_mcs;
+-		if (rate_mcs > ATH11K_VHT_MCS_MAX) {
++		if (rate_mcs > ATH11K_VHT_MCS_MAX || !nss || nss > 8) {
+ 			ath11k_warn(ar->ab,
+-				    "Received with invalid mcs in VHT mode %d\n",
+-				     rate_mcs);
++				    "Received with invalid mcs/nss in VHT mode %d/%d\n",
++				     rate_mcs, nss);
+ 			break;
+ 		}
++		rx_status->encoding = RX_ENC_VHT;
++		rx_status->rate_idx = rate_mcs;
+ 		rx_status->nss = nss;
+ 		if (sgi)
+ 			rx_status->enc_flags |= RX_ENC_FLAG_SHORT_GI;
+ 		rx_status->bw = ath11k_mac_bw_to_mac80211_bw(bw);
+ 		break;
+ 	case RX_MSDU_START_PKT_TYPE_11AX:
+-		rx_status->rate_idx = rate_mcs;
+-		if (rate_mcs > ATH11K_HE_MCS_MAX) {
++		if (rate_mcs > ATH11K_HE_MCS_MAX || !nss || nss > 8) {
+ 			ath11k_warn(ar->ab,
+-				    "Received with invalid mcs in HE mode %d\n",
+-				    rate_mcs);
++				    "Received with invalid mcs/nss in HE mode %d/%d\n",
++				    rate_mcs, nss);
+ 			break;
+ 		}
++		rx_status->rate_idx = rate_mcs;
+ 		rx_status->encoding = RX_ENC_HE;
+ 		rx_status->nss = nss;
+ 		rx_status->he_gi = ath11k_he_gi_to_nl80211_he_gi(sgi);
