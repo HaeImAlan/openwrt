@@ -1,0 +1,98 @@
+From: HaeImAlan <me@haeimalan.com>
+Subject: remoteproc: qcom_q6v5_mpd: make MSA/internal-wifi SCM calls optional
+
+The multi-PD WCSS driver unconditionally issues qcom_scm_msa_lock() /
+qcom_scm_msa_unlock() around every user-PD start/stop, plus
+qcom_scm_internal_wifi_powerup() / qcom_scm_internal_wifi_shutdown()
+for the internal radio's PD (pd_asid == 1).
+
+These are vendor-specific SCM command IDs. Qualcomm's own QSDK
+multi-PD driver for IPQ5018 (qcom_q6v5_mpd.c in the 5.4-qsdk tree)
+never issues them -- it uses only qcom_scm_pas_auth_and_reset() and
+qcom_scm_pas_shutdown() -- and drives both the internal IPQ5018 radio
+and an external QCN6122 successfully on IPQ5018-era TrustZone.
+
+On boards running an older stock IPQ5018 TrustZone (e.g. the Xiaomi
+AX3000E, BOOT.BF.3.3.1.1-00064) these command IDs are not implemented.
+Invoking them faults on the secure side, which kills the CPU with no
+kernel-visible error: an immediate cold reset back to PBL, with no oops
+and no panic. This made enabling QCN6122 (which switches q6v5_wcss from
+"qcom,ipq5018-wcss-sec-pil" to "qcom,ipq5018-q6-mpd") appear to be a
+QCN6122 problem, when the trigger is actually the compatible swap alone.
+
+Gate the calls behind a per-SoC flag, defaulting to the existing
+behaviour, and opt IPQ5018 out to match QSDK's proven sequence.
+
+Assisted-by: Claude:claude-opus-5
+Signed-off-by: HaeImAlan <me@haeimalan.com>
+
+--- a/drivers/remoteproc/qcom_q6v5_mpd.c
++++ b/drivers/remoteproc/qcom_q6v5_mpd.c
+@@ -99,6 +99,7 @@ struct wcss_data {
+ 	u32 pasid;
+ 	bool share_upd_info_to_q6;
+ 	u8 bootargs_version;
++	bool no_msa_scm;
+ };
+
+ /**
+@@ -164,10 +165,12 @@ static int wcss_pd_start(struct rproc *rproc)
+ 	u32 pasid = (upd->pd_asid << 8) | UPD_SWID;
+ 	int ret;
+
+-	ret = qcom_scm_msa_lock(pasid);
+-	if (ret) {
+-		dev_err(upd->dev, "failed to power up pd\n");
+-		return ret;
++	if (!wcss->desc->no_msa_scm) {
++		ret = qcom_scm_msa_lock(pasid);
++		if (ret) {
++			dev_err(upd->dev, "failed to power up pd\n");
++			return ret;
++		}
+ 	}
+
+ 	if (upd->q6.spawn_bit) {
+@@ -176,7 +179,7 @@ static int wcss_pd_start(struct rproc *rproc)
+ 			return ret;
+ 	}
+
+-	if (upd->pd_asid == 1) {
++	if (upd->pd_asid == 1 && !wcss->desc->no_msa_scm) {
+ 		ret = qcom_scm_internal_wifi_powerup(wcss->desc->pasid);
+ 		if (ret) {
+ 			dev_err(upd->dev, "failed to power up internal radio\n");
+@@ -255,7 +258,7 @@ static int wcss_pd_stop(struct rproc *rproc)
+ 		}
+ 	}
+
+-	if (upd->pd_asid == 1) {
++	if (upd->pd_asid == 1 && !wcss->desc->no_msa_scm) {
+ 		ret = qcom_scm_internal_wifi_shutdown(wcss->desc->pasid);
+ 		if (ret) {
+ 			dev_err(upd->dev, "failed to power down internal radio\n");
+@@ -263,10 +266,12 @@ static int wcss_pd_stop(struct rproc *rproc)
+ 		}
+ 	}
+
+-	ret = qcom_scm_msa_unlock(pasid);
+-	if (ret) {
+-		dev_err(upd->dev, "failed to power down pd\n");
+-		return ret;
++	if (!wcss->desc->no_msa_scm) {
++		ret = qcom_scm_msa_unlock(pasid);
++		if (ret) {
++			dev_err(upd->dev, "failed to power down pd\n");
++			return ret;
++		}
+ 	}
+
+ 	rproc_shutdown(rpd_rproc);
+@@ -846,6 +851,7 @@ static const struct wcss_data q6_ipq5018_res_init = {
+ 	.pasid = MPD_WCNSS_PAS_ID,
+ 	.share_upd_info_to_q6 = true,
+ 	.bootargs_version = VERSION1,
++	.no_msa_scm = true,
+ 	// .mdt_load_sec = qcom_mdt_load_pd_seg,
+ };
+
