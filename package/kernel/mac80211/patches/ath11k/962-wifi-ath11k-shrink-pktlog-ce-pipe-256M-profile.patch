@@ -1,0 +1,68 @@
+From: HaeImAlan <me@haeimalan.com>
+Date: Sat, 13 Sep 2026 10:02:00 +0800
+Subject: [PATCH] wifi: ath11k: shrink the unused pktlog CE pipe in the 256M profile
+
+CE5 in the ipq8074 and qcn9074 host CE tables is the target->host packet
+log pipe. ath11k never connects the PKT_LOG HTC service (only RSVD_CTRL,
+WMI_CONTROL and HTT_DATA_MSG are connected, see ath11k_htc_init() and
+ath11k_dp_htt_connect()), so the firmware only ever pushes into this pipe
+when packet logging is switched on from debugfs. The host still
+pre-posts 512 receive buffers of 2048 bytes into it at boot, which is
+~1.2 MB of skb memory per radio doing nothing.
+
+Post 32 buffers instead when the 256M memory profile is selected. That
+still leaves the pipe functional for debugfs pktlog at reduced
+throughput; it has no effect on the data path.
+
+Expected saving: ~1.1 MB per radio.
+
+Signed-off-by: HaeImAlan <me@haeimalan.com>
+---
+ drivers/net/wireless/ath/ath11k/ce.c
+
+--- a/drivers/net/wireless/ath/ath11k/ce.c
++++ b/drivers/net/wireless/ath/ath11k/ce.c
+@@ -9,6 +9,16 @@
+ #include "dp_rx.h"
+ #include "debug.h"
+ #include "hif.h"
++
++/* CE5 carries the PKT_LOG HTC service, which ath11k never connects. The
++ * firmware only pushes into it when packet logging is enabled from
++ * debugfs, so do not pre-post 512 x 2 KB into it on the 256M profile.
++ */
++#if defined(CPTCFG_ATH11K_MEM_PROFILE_256M)
++#define ATH11K_CE_PKTLOG_DEST_NENTRIES	32
++#else
++#define ATH11K_CE_PKTLOG_DEST_NENTRIES	512
++#endif
+ 
+ const struct ce_attr ath11k_host_ce_config_ipq8074[] = {
+ 	/* CE0: host->target HTC control and raw streams */
+@@ -60,7 +70,7 @@
+ 		.flags = CE_ATTR_FLAGS,
+ 		.src_nentries = 0,
+ 		.src_sz_max = 2048,
+-		.dest_nentries = 512,
++		.dest_nentries = ATH11K_CE_PKTLOG_DEST_NENTRIES,
+ 		.recv_cb = ath11k_dp_htt_htc_t2h_msg_handler,
+ 	},
+ 
+@@ -165,7 +175,7 @@
+ 		.flags = CE_ATTR_FLAGS,
+ 		.src_nentries = 0,
+ 		.src_sz_max = 2048,
+-		.dest_nentries = 512,
++		.dest_nentries = ATH11K_CE_PKTLOG_DEST_NENTRIES,
+ 		.recv_cb = ath11k_dp_htt_htc_t2h_msg_handler,
+ 	},
+ 
+@@ -245,7 +255,7 @@
+ 		.flags = CE_ATTR_FLAGS,
+ 		.src_nentries = 0,
+ 		.src_sz_max = 2048,
+-		.dest_nentries = 512,
++		.dest_nentries = ATH11K_CE_PKTLOG_DEST_NENTRIES,
+ 		.recv_cb = ath11k_dp_htt_htc_t2h_msg_handler,
+ 	},
+ };
