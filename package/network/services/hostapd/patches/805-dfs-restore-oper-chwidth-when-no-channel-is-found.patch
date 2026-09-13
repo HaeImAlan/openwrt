@@ -1,0 +1,81 @@
+From: HaeImAlan <me@haeimalan.com>
+Date: Sat, 13 Sep 2026 00:00:00 +0000
+Subject: [PATCH] dfs: restore operating channel width when no channel is found
+
+dfs_downgrade_bandwidth() walks the configured operating width down
+(160 -> 80 -> 40/20) via hostapd_set_oper_chwidth() while it searches for
+a usable channel. When every candidate is in NOP it gives up and returns
+NULL, but the mutated width is left behind in iface->conf. The center
+segment index (seg0) is only written back on the success paths, so it
+still describes the original, wider channel.
+
+On a 160 MHz DFS channel a single radar event NOPs all eight 20 MHz
+sub-channels at once, so the search always fails. hostapd then toggles the
+interface into DFS state (hostapd_disable_iface()/hostapd_enable_iface()).
+When the NOP expires hostapd_dfs_nop_finished() calls hostapd_handle_dfs(),
+which restarts CAC using the mutated width together with the untouched
+seg0:
+
+  DFS-CAC-START freq=5640 chan=128 sec_chan=-1, width=0, seg0=114, ...
+
+hostapd_set_freq_params() rejects that combination in its
+CONF_OPER_CHWIDTH_USE_HT case ("center segment 0 and center freq 1 not in
+sync"), hostapd_start_dfs_cac() returns -1, and hostapd_handle_dfs() logs
+"DFS start_dfs_cac() failed, -1". That return value is discarded by
+hostapd_dfs_nop_finished(), so nothing retries and the radio stays in
+HAPD_IFACE_DFS state indefinitely.
+
+This is a generic upstream hostapd bug (the width leak in
+dfs_downgrade_bandwidth() combined with the now-upstream "enter DFS state
+if no available channel is found" toggle); it has been reported against
+ath10k, ath11k and mt76 on OpenWrt (issues #13231, #14253, #19371) with
+no fix proposed. Restore the saved operating width on both failure paths
+so the CAC retried after the NOP uses a chandef consistent with the
+configured center segment and recovers on its own.
+
+Signed-off-by: HaeImAlan <me@haeimalan.com>
+--- a/src/ap/dfs.c
++++ b/src/ap/dfs.c
+@@ -1336,6 +1336,7 @@
+ 	enum dfs_channel_type channel_type = DFS_ANY_CHANNEL;
+ 	int err = 1;
+ 	u8 op_class, chan;
++	u8 current_vht_oper_chwidth = hostapd_get_oper_chwidth(iface->conf);
+ 
+ 	/* Radar detected during active CAC */
+ 	iface->cac_started = 0;
+@@ -1350,6 +1351,16 @@
+ 						  &oper_centr_freq_seg1_idx,
+ 						  &channel_type);
+ 		if (!channel) {
++			/*
++			 * dfs_downgrade_bandwidth() walked the operating
++			 * width down while searching and left the reduced
++			 * value in iface->conf even though no channel was
++			 * found. Restore it so a later CAC attempt is not
++			 * built with a width that no longer matches the
++			 * configured center segment.
++			 */
++			hostapd_set_oper_chwidth(iface->conf,
++						 current_vht_oper_chwidth);
+ 			wpa_printf(MSG_ERROR, "No valid channel available");
+ 			return err;
+ 		}
+@@ -1477,6 +1488,17 @@
+ 						  &channel_type);
+ 		if (!channel) {
+ 			/*
++			 * dfs_downgrade_bandwidth() mutates the configured
++			 * operating width as it searches. When it finds
++			 * nothing the reduced width stays in iface->conf
++			 * while the center segment index does not, so the
++			 * CAC restarted from hostapd_dfs_nop_finished()
++			 * would build an inconsistent chandef and fail in
++			 * hostapd_set_freq_params(). Restore the width.
++			 */
++			hostapd_set_oper_chwidth(iface->conf,
++						 current_vht_oper_chwidth);
++			/*
+ 			 * Toggle interface state to enter DFS state
+ 			 * until NOP is finished.
+ 			 */
