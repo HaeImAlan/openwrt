@@ -1,0 +1,17 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /lib/functions/system.sh
+
+[ -e /etc/fw_env.config ] && exit 0
+
+case "$(board_name)" in
+xiaomi,ax3000e)
+	# libubootenv's own NVMEM auto-detection (via the "u-boot,env"
+	# devicetree node on the 0:appsblenv partition) never finds a
+	# /dev node to open, so fw_printenv/fw_setenv fall through to this
+	# static config instead. Offset/size/sector-size confirmed against
+	# this exact board's proven-working QSDK 4.4 /etc/fw_env.config.
+	echo "/dev/mtd$(find_mtd_index 0:appsblenv) 0x0 0x10000 0x20000" > /etc/fw_env.config
+	;;
+esac
