@@ -1,0 +1,119 @@
+From: HaeImAlan <me@haeimalan.com>
+Date: Sat, 13 Sep 2026 10:03:00 +0800
+Subject: [PATCH] wifi: ath11k: do not over-allocate DMA rings for alignment slack
+
+ath11k_dp_srng_setup(), ath11k_dp_link_desc_setup() and
+ath11k_ce_alloc_ring() add HAL_RING_BASE_ALIGN - 1, HAL_LINK_DESC_ALIGN
+and CE_DESC_RING_ALIGN bytes of slack to every dma_alloc_coherent() and
+then PTR_ALIGN() the result. The slack is never needed: the DMA API
+guarantees the returned buffer is aligned to at least PAGE_SIZE (and to
+the page order covering the request), which satisfies all three
+alignments.
+
+It is not free either. Without CMA the direct DMA allocator hands out
+whole page-order blocks (alloc_pages(get_order(size))) and keeps the
+tail, so a ring whose natural size is an exact power of two costs twice
+its size as soon as a single byte of slack is added. With the default
+sizing on IPQ5018 that is, per radio: the 1 MB TX completion ring becomes
+2 MB, the 256 KB WBM idle ring 512 KB, each 128 KB REO destination ring
+256 KB, the 512 KB monitor link descriptor bank 1 MB, and so on, about
+2.5 MB in total. With the 256M profile the 1 MB link descriptor bank
+would become 2 MB.
+
+Drop the slack and allocate exactly what the rings need. The
+*_unaligned bookkeeping is kept so the free paths stay unchanged; the
+PTR_ALIGN() calls are now no-ops.
+
+Expected saving: ~2.5 MB per radio with default sizing, ~1.3 MB per
+radio with the 256M profile.
+
+Signed-off-by: HaeImAlan <me@haeimalan.com>
+---
+ drivers/net/wireless/ath/ath11k/dp.c
+ drivers/net/wireless/ath/ath11k/ce.c
+
+--- a/drivers/net/wireless/ath/ath11k/dp.c
++++ b/drivers/net/wireless/ath/ath11k/dp.c
+@@ -237,7 +237,13 @@
+ 	if (num_entries > max_entries)
+ 		num_entries = max_entries;
+ 
+-	ring->size = (num_entries * entry_sz) + HAL_RING_BASE_ALIGN - 1;
++	/* dma_alloc_coherent()/dma_alloc_noncoherent() return memory aligned
++	 * to at least PAGE_SIZE, which already satisfies HAL_RING_BASE_ALIGN.
++	 * Do not add alignment slack: on power-of-two ring sizes the extra
++	 * bytes push the allocation into the next page order and double the
++	 * footprint of the ring.
++	 */
++	ring->size = num_entries * entry_sz;
+ 
+ 	if (ab->hw_params.alloc_cacheable_memory) {
+ 		/* Allocate the reo dst and tx completion rings from cacheable memory */
+@@ -694,19 +700,18 @@
+ 	u32 *desc;
+ 	int i, ret;
+ 
++	/* Banks come from dma_alloc_coherent() and are therefore at least
++	 * PAGE_SIZE aligned, so no HAL_LINK_DESC_ALIGN slack is needed. Adding
++	 * it would push a power-of-two sized pool into the next page order.
++	 */
+ 	tot_mem_sz = n_link_desc * HAL_LINK_DESC_SIZE;
+-	tot_mem_sz += HAL_LINK_DESC_ALIGN;
+ 
+ 	if (tot_mem_sz <= DP_LINK_DESC_ALLOC_SIZE_THRESH) {
+ 		n_link_desc_bank = 1;
+ 		last_bank_sz = tot_mem_sz;
+ 	} else {
+-		n_link_desc_bank = tot_mem_sz /
+-				   (DP_LINK_DESC_ALLOC_SIZE_THRESH -
+-				    HAL_LINK_DESC_ALIGN);
+-		last_bank_sz = tot_mem_sz %
+-			       (DP_LINK_DESC_ALLOC_SIZE_THRESH -
+-				HAL_LINK_DESC_ALIGN);
++		n_link_desc_bank = tot_mem_sz / DP_LINK_DESC_ALLOC_SIZE_THRESH;
++		last_bank_sz = tot_mem_sz % DP_LINK_DESC_ALLOC_SIZE_THRESH;
+ 
+ 		if (last_bank_sz)
+ 			n_link_desc_bank += 1;
+--- a/drivers/net/wireless/ath/ath11k/ce.c
++++ b/drivers/net/wireless/ath/ath11k/ce.c
+@@ -636,8 +636,7 @@
+ 	 * coherent DMA are unsupported
+ 	 */
+ 	ce_ring->base_addr_owner_space_unaligned =
+-		dma_alloc_coherent(ab->dev,
+-				   nentries * desc_sz + CE_DESC_RING_ALIGN,
++		dma_alloc_coherent(ab->dev, nentries * desc_sz,
+ 				   &base_addr, GFP_KERNEL);
+ 	if (!ce_ring->base_addr_owner_space_unaligned) {
+ 		kfree(ce_ring);
+@@ -997,8 +996,7 @@
+ 			desc_sz = ath11k_hal_ce_get_desc_size(HAL_CE_DESC_SRC);
+ 			ce_ring = pipe->src_ring;
+ 			dma_free_coherent(ab->dev,
+-					  pipe->src_ring->nentries * desc_sz +
+-					  CE_DESC_RING_ALIGN,
++					  pipe->src_ring->nentries * desc_sz,
+ 					  ce_ring->base_addr_owner_space_unaligned,
+ 					  ce_ring->base_addr_ce_space_unaligned);
+ 			kfree(pipe->src_ring);
+@@ -1009,8 +1007,7 @@
+ 			desc_sz = ath11k_hal_ce_get_desc_size(HAL_CE_DESC_DST);
+ 			ce_ring = pipe->dest_ring;
+ 			dma_free_coherent(ab->dev,
+-					  pipe->dest_ring->nentries * desc_sz +
+-					  CE_DESC_RING_ALIGN,
++					  pipe->dest_ring->nentries * desc_sz,
+ 					  ce_ring->base_addr_owner_space_unaligned,
+ 					  ce_ring->base_addr_ce_space_unaligned);
+ 			kfree(pipe->dest_ring);
+@@ -1022,8 +1019,7 @@
+ 			  ath11k_hal_ce_get_desc_size(HAL_CE_DESC_DST_STATUS);
+ 			ce_ring = pipe->status_ring;
+ 			dma_free_coherent(ab->dev,
+-					  pipe->status_ring->nentries * desc_sz +
+-					  CE_DESC_RING_ALIGN,
++					  pipe->status_ring->nentries * desc_sz,
+ 					  ce_ring->base_addr_owner_space_unaligned,
+ 					  ce_ring->base_addr_ce_space_unaligned);
+ 			kfree(pipe->status_ring);
