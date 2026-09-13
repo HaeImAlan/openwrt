@@ -409,6 +409,19 @@ define Device/xiaomi_redmi-ax5400
 endef
 TARGET_DEVICES += xiaomi_redmi-ax5400
 
+# Bring-up device: wireless intentionally disabled (no ath11k/ipq-wifi
+# packages, WCSS/PCIe left disabled in the DTS) until basic boot is
+# confirmed. See QUALCOMMAX_BRINGUP_PLAN.md.
+define Device/xiaomi_ax3000e
+	$(call Device/xiaomi_ipq50xx_ax_base)
+	DEVICE_MODEL := AX3000E
+	DEVICE_DTS_CONFIG := config@mp03.3
+	DEVICE_PACKAGES := ath11k-firmware-ipq5018-qcn6122 \
+		ipq-wifi-xiaomi_ax3000e \
+		kmod-ath11k-smallbuffers
+endef
+TARGET_DEVICES += xiaomi_ax3000e
+
 define Device/yuncore_ax830
 	$(call Device/FitImage)
 	$(call Device/UbiFit)
