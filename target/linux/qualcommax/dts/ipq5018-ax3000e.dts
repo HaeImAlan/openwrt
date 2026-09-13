@@ -1,0 +1,480 @@
+// SPDX-License-Identifier: GPL-2.0-or-later OR MIT
+
+/dts-v1/;
+
+#include "ipq5018.dtsi"
+#include "ipq5018-ess.dtsi"
+#include "ipq5018-qcn6122.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+#include <dt-bindings/leds/common.h>
+
+/ {
+	model = "Xiaomi AX3000E";
+	compatible = "xiaomi,ax3000e", "qcom,ipq5018";
+
+	aliases {
+		led-boot = &led_system_blue;
+		led-failsafe = &led_system_yellow;
+		led-running = &led_system_blue;
+		led-upgrade = &led_system_yellow;
+		serial0 = &blsp1_uart1;
+	};
+
+	/*
+	 * The 50 MHz UNIPHY reference normally comes from the CMN PLL block.
+	 * On this board the CMN PLL registers are protected by the vendor
+	 * TrustZone firmware: any access from Linux resets the SoC. The
+	 * bootloader has already configured the PLL, so describe its output
+	 * as a fixed clock and keep the cmn_pll node disabled (see below).
+	 */
+	uniphy0_ref_50mhz: uniphy0-ref-50mhz {
+		compatible = "fixed-clock";
+		#clock-cells = <0>;
+		clock-frequency = <50000000>;
+		clock-output-names = "uniphy0_ref_50mhz";
+	};
+
+	chosen {
+		bootargs-append = " ubi.mtd=rootfs root=/dev/ubiblock0_1 coherent_pool=2M";
+		stdout-path = "serial0:115200n8";
+	};
+
+	keys {
+		compatible = "gpio-keys";
+		pinctrl-0 = <&button_pins>;
+		pinctrl-names = "default";
+
+		reset-button {
+			label = "reset";
+			gpios = <&tlmm 38 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+
+		mesh-button {
+			label = "mesh";
+			gpios = <&tlmm 28 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
+		};
+	};
+
+	leds {
+		compatible = "gpio-leds";
+		pinctrl-0 = <&leds_pins>;
+		pinctrl-names = "default";
+
+		led_system_blue: system-blue {
+			color = <LED_COLOR_ID_BLUE>;
+			function = LED_FUNCTION_POWER;
+			gpios = <&tlmm 24 GPIO_ACTIVE_HIGH>;
+		};
+
+		led_system_yellow: system-yellow {
+			color = <LED_COLOR_ID_YELLOW>;
+			function = LED_FUNCTION_POWER;
+			gpios = <&tlmm 25 GPIO_ACTIVE_HIGH>;
+		};
+	};
+};
+
+&sleep_clk {
+	clock-frequency = <32000>;
+};
+
+&xo_board_clk {
+	clock-div = <4>;
+	clock-mult = <1>;
+};
+
+&blsp1_uart1 {
+	pinctrl-0 = <&serial_0_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+};
+
+&prng {
+	status = "okay";
+};
+
+&qfprom {
+	status = "okay";
+};
+
+&qpic_bam {
+	status = "okay";
+};
+
+&qpic_nand {
+	pinctrl-0 = <&qpic_pins>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	nand@0 {
+		compatible = "spi-nand";
+		reg = <0>;
+		nand-ecc-engine = <&qpic_nand>;
+		nand-bus-width = <8>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "0:sbl1";
+				reg = <0x00000000 0x80000>;
+				read-only;
+			};
+
+			partition@80000 {
+				label = "0:mibib";
+				reg = <0x00080000 0x80000>;
+				read-only;
+			};
+
+			partition@100000 {
+				label = "0:bootconfig";
+				reg = <0x00100000 0x40000>;
+				read-only;
+			};
+
+			partition@140000 {
+				label = "0:bootconfig1";
+				reg = <0x00140000 0x40000>;
+				read-only;
+			};
+
+			partition@180000 {
+				label = "0:qsee";
+				reg = <0x00180000 0x100000>;
+				read-only;
+			};
+
+			partition@280000 {
+				label = "0:qsee_1";
+				reg = <0x00280000 0x100000>;
+				read-only;
+			};
+
+			partition@380000 {
+				label = "0:devcfg";
+				reg = <0x00380000 0x40000>;
+				read-only;
+			};
+
+			partition@3c0000 {
+				label = "0:devcfg_1";
+				reg = <0x003c0000 0x40000>;
+				read-only;
+			};
+
+			partition@400000 {
+				label = "0:cdt";
+				reg = <0x00400000 0x40000>;
+				read-only;
+			};
+
+			partition@440000 {
+				label = "0:cdt_1";
+				reg = <0x00440000 0x40000>;
+				read-only;
+			};
+
+			partition@480000 {
+				label = "0:appsblenv";
+				reg = <0x00480000 0x80000>;
+
+				nvmem-layout {
+					compatible = "u-boot,env";
+					env-size = <0x10000>;
+				};
+			};
+
+			partition@500000 {
+				label = "0:appsbl";
+				reg = <0x00500000 0x100000>;
+				read-only;
+			};
+
+			partition@600000 {
+				label = "0:appsbl_1";
+				reg = <0x00600000 0x100000>;
+				read-only;
+			};
+
+			partition@700000 {
+				label = "0:art";
+				reg = <0x00700000 0x100000>;
+				read-only;
+
+				nvmem-layout {
+					compatible = "fixed-layout";
+					#address-cells = <1>;
+					#size-cells = <1>;
+
+					mac_addr_gmac1: macaddr@0 {
+						reg = <0x0 0x6>;
+					};
+
+					mac_addr_gmac0: macaddr@6 {
+						reg = <0x6 0x6>;
+					};
+				};
+			};
+
+			partition@800000 {
+				label = "0:training";
+				reg = <0x00800000 0x80000>;
+				read-only;
+			};
+
+			partition@880000 {
+				label = "bdata";
+				reg = <0x00880000 0x80000>;
+			};
+
+			partition@900000 {
+				label = "crash";
+				reg = <0x00900000 0x80000>;
+			};
+
+			/*
+			 * The vendor bootloader (bootmiwifi) implements A/B booting
+			 * between "rootfs" and "rootfs_1" via U-Boot environment
+			 * flags; see the bootcount init script.
+			 */
+			partition@980000 {
+				label = "rootfs";
+				reg = <0x00980000 0x1900000>;
+			};
+
+			partition@2280000 {
+				label = "rootfs_1";
+				reg = <0x02280000 0x1900000>;
+			};
+
+			partition@3b80000 {
+				label = "overlay";
+				reg = <0x03b80000 0x480000>;
+			};
+		};
+	};
+};
+
+&tlmm {
+	mdio1_pins: mdio-state {
+		mdc-pins {
+			pins = "gpio36";
+			function = "mdc";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+
+		mdio-pins {
+			pins = "gpio37";
+			function = "mdio";
+			drive-strength = <8>;
+			bias-pull-up;
+		};
+	};
+
+	button_pins: button-state {
+		pins = "gpio28", "gpio38";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-pull-up;
+	};
+
+	leds_pins: leds-state {
+		pins = "gpio24", "gpio25";
+		function = "gpio";
+		drive-strength = <8>;
+		bias-pull-down;
+	};
+
+	qpic_pins: qpic-state {
+		clock-pins {
+			pins = "gpio9";
+			function = "qspi_clk";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		cs-pins {
+			pins = "gpio8";
+			function = "qspi_cs";
+			drive-strength = <8>;
+			bias-disable;
+		};
+
+		data-pins {
+			pins = "gpio4", "gpio5", "gpio6", "gpio7";
+			function = "qspi_data";
+			drive-strength = <8>;
+			bias-disable;
+		};
+	};
+
+	serial_0_pins: uart0-state {
+		pins = "gpio20", "gpio21";
+		function = "blsp0_uart0";
+		bias-disable;
+	};
+};
+
+&q6v5_wcss {
+	firmware-name = "ath11k/IPQ5018/hw1.0/q6_fw.mdt",
+			"ath11k/IPQ5018/hw1.0/m3_fw.mdt",
+			"ath11k/QCN6122/hw1.0/m3_fw.mdt";
+};
+
+/* Internal IPQ5018 2.4 GHz radio */
+&wifi {
+	qcom,rproc = <&q6_wcss_pd1>;
+	qcom,ath11k-calibration-variant = "Xiaomi-AX3000E";
+	qcom,ath11k-fw-memory-mode = <2>;
+	qcom,bdf-addr = <0x4c400000>;
+	status = "okay";
+};
+
+/* QCN6122 5 GHz radio on user PD 2 */
+&wifi1 {
+	qcom,rproc = <&q6_wcss_pd2>;
+	qcom,userpd-subsys-name = "q6v5_wcss_userpd2";
+	qcom,ath11k-calibration-variant = "Xiaomi-AX3000E";
+	qcom,ath11k-fw-memory-mode = <2>;
+	qcom,bdf-addr = <0x4d100000>;
+	qcom,m3-dump-addr = <0x4df00000>;
+	status = "okay";
+};
+
+/*
+ * All four RJ45 ports (three LAN, one WAN) hang off a Motorcomm YT9215S
+ * switch connected to GMAC1 over 2500BASE-X. The internal GEPHY on GMAC0
+ * is unused.
+ */
+&gmac1 {
+	phy-mode = "2500base-x";
+	nvmem-cells = <&mac_addr_gmac1 0>;
+	nvmem-cell-names = "mac-address";
+	status = "okay";
+
+	fixed-link {
+		speed = <2500>;
+		full-duplex;
+	};
+};
+
+/*
+ * MDIO0 (internal GEPHY bus) is not used on this board, but its AHB clock
+ * must stay enabled: with GCC_MDIO0_AHB_CLK gated, the MDIO1 controller
+ * below stops responding (every switch register reads back as zero).
+ * Keeping the controller enabled makes its driver hold the clock, which is
+ * also what the vendor firmware does.
+ */
+&mdio0 {
+	status = "okay";
+};
+
+&mdio1 {
+	pinctrl-0 = <&mdio1_pins>;
+	pinctrl-names = "default";
+	reset-gpios = <&tlmm 39 GPIO_ACTIVE_LOW>;
+	reset-delay-us = <100000>;
+	reset-post-delay-us = <100000>;
+	status = "okay";
+
+	switch@1d {
+		compatible = "motorcomm,yt9215";
+		reg = <0x1d>;
+
+		mdio {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			yt9215_phy0: ethernet-phy@0 {
+				reg = <0>;
+			};
+
+			yt9215_phy1: ethernet-phy@1 {
+				reg = <1>;
+			};
+
+			yt9215_phy2: ethernet-phy@2 {
+				reg = <2>;
+			};
+
+			yt9215_phy3: ethernet-phy@3 {
+				reg = <3>;
+			};
+		};
+
+		ports {
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@0 {
+				reg = <0>;
+				label = "lan1";
+				phy-mode = "internal";
+				phy-handle = <&yt9215_phy0>;
+			};
+
+			port@1 {
+				reg = <1>;
+				label = "lan2";
+				phy-mode = "internal";
+				phy-handle = <&yt9215_phy1>;
+			};
+
+			port@2 {
+				reg = <2>;
+				label = "lan3";
+				phy-mode = "internal";
+				phy-handle = <&yt9215_phy2>;
+			};
+
+			port@3 {
+				reg = <3>;
+				label = "wan";
+				phy-mode = "internal";
+				phy-handle = <&yt9215_phy3>;
+			};
+
+			port@8 {
+				reg = <8>;
+				label = "cpu";
+				ethernet = <&gmac1>;
+				phy-mode = "2500base-x";
+
+				fixed-link {
+					speed = <2500>;
+					full-duplex;
+				};
+			};
+		};
+	};
+};
+
+&uniphy0 {
+	clocks = <&gcc GCC_UNIPHY_AHB_CLK>,
+		 <&gcc GCC_UNIPHY_SYS_CLK>,
+		 <&gcc GCC_UNIPHY_RX_CLK>,
+		 <&gcc GCC_UNIPHY_TX_CLK>,
+		 <&uniphy0_ref_50mhz>;
+	status = "okay";
+};
+
+/* TrustZone-owned on this board, see uniphy0_ref_50mhz above. */
+&cmn_pll {
+	status = "disabled";
+};
+
+/* Region used by the vendor TrustZone applications; keep the kernel out. */
+&{/reserved-memory} {
+	tz_apps@4a400000 {
+		no-map;
+		reg = <0x0 0x4a400000 0x0 0x700000>;
+	};
+};

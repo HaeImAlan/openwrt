@@ -232,6 +232,32 @@ platform_do_upgrade() {
 		CI_DATA_UBIPART="rootfs"
 		nand_do_upgrade "$1"
 		;;
+	xiaomi,ax3000e)
+		# Make sure that UART is enabled
+		fw_setenv boot_wait on
+		fw_setenv uart_en 1
+
+		# Point boot at bank 0 ("rootfs"). Do NOT touch
+		# flag_try_sys1_failed/flag_try_sys2_failed here: setting BOTH
+		# counters high (as ax6000/redmi-ax5400 do, since those devices
+		# don't have this board's real dual-bank scheme) triggers
+		# miwifi_config_env's "both image failed" safety reset, which
+		# reverts flag_boot_rootfs back to whatever it already was --
+		# confirmed via disassembly of the live 0:appsbl U-Boot image.
+		fw_setenv flag_boot_rootfs 0
+		fw_setenv flag_last_success 0
+		fw_setenv flag_boot_success 1
+
+		# kernel, rootfs, and the rootfs_data overlay volume all
+		# share the same UBI device on the active bank -- the real
+		# "overlay" partition is only 4.5MiB, too small to host a
+		# standalone UBI device (UBI alone reserves ~10 PEBs for bad
+		# block handling), so it is left unused here.
+		CI_KERN_UBIPART="rootfs"
+		CI_ROOT_UBIPART="rootfs"
+		CI_DATA_UBIPART="rootfs"
+		nand_do_upgrade "$1"
+		;;
 	yuncore,ax830|\
 	yuncore,ax850|\
 	zyxel,scr50axe)

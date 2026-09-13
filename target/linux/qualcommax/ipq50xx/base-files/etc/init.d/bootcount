@@ -11,5 +11,40 @@ boot() {
 	linksys,spnmx56)
 		mtd resetbc s_env || true
 	;;
+	xiaomi,ax3000e)
+		# bootmiwifi increments flag_try_sys{1,2}_failed before handing
+		# off to Linux and expects the OS to zero it again. Without this
+		# every reboot counts as a failed boot attempt, and after a few
+		# the loader abandons a perfectly good bank and falls back.
+		[ -e /etc/fw_env.config ] || {
+			. /lib/functions/system.sh
+			echo "/dev/mtd$(find_mtd_index 0:appsblenv) 0x0 0x10000 0x20000" \
+				> /etc/fw_env.config
+		}
+
+		fw_printenv >/dev/null 2>&1 || return 0
+
+		# The loader's own ubi.mtd= comes first; the DTS bootargs append
+		# a second one, so take the first occurrence.
+		local mtd bank failflag
+		mtd="$(grep -oE 'ubi\.mtd=[a-zA-Z0-9_-]+' /proc/cmdline | head -1 | cut -d= -f2)"
+
+		case "$mtd" in
+		rootfs)   bank=0; failflag=flag_try_sys1_failed ;;
+		rootfs_1) bank=1; failflag=flag_try_sys2_failed ;;
+		*)
+			echo "bootcount: cannot determine boot bank (ubi.mtd=$mtd)"
+			return 1
+			;;
+		esac
+
+		# Only ever clear the booted bank's counter - both counters high
+		# at once trips miwifi_config_env's "both images failed" reset.
+		fw_setenv "$failflag" 0
+		fw_setenv flag_last_success "$bank"
+		fw_setenv flag_boot_rootfs "$bank"
+		fw_setenv flag_boot_success 1
+		fw_setenv flag_ota_reboot 0
+	;;
 	esac
 }
