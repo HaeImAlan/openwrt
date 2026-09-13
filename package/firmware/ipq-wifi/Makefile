@@ -13,6 +13,12 @@ PKG_FLAGS:=nonshared
 
 include $(INCLUDE_DIR)/package.mk
 
+# Board files not yet in firmware/qca-wireless are carried in ./files
+define Build/Prepare
+	$(call Build/Prepare/Default)
+	$(if $(wildcard ./files/board-*),$(CP) ./files/board-* $(PKG_BUILD_DIR)/)
+endef
+
 define Build/Compile
 endef
 
@@ -107,6 +113,7 @@ ALLWIFIBOARDS:= \
 	xiaomi_aiot-ac2350 \
 	xiaomi_ax3600 \
 	xiaomi_ax6000 \
+	xiaomi_ax3000e \
 	xiaomi_ax9000 \
 	xiaomi_redmi-ax5400 \
 	yuncore_ax830 \
@@ -306,6 +313,7 @@ $(eval $(call generate-ipq-wifi-package,wallys_dr40x9,Wallys DR40X9))
 $(eval $(call generate-ipq-wifi-package,xiaomi_aiot-ac2350,Xiaomi AIoT AC2350))
 $(eval $(call generate-ipq-wifi-package,xiaomi_ax3600,Xiaomi AX3600))
 $(eval $(call generate-ipq-wifi-package,xiaomi_ax6000,Xiaomi AX6000))
+$(eval $(call generate-ipq-wifi-package,xiaomi_ax3000e,Xiaomi AX3000E))
 $(eval $(call generate-ipq-wifi-package,xiaomi_ax9000,Xiaomi AX9000))
 $(eval $(call generate-ipq-wifi-package,xiaomi_redmi-ax5400,Xiaomi Redmi AX5400))
 $(eval $(call generate-ipq-wifi-package,yuncore_ax830,Yuncore AX830))
