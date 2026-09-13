@@ -1,0 +1,41 @@
+From: HaeImAlan <me@haeimalan.com>
+Date: Sat, 13 Sep 2026 10:01:00 +0800
+Subject: [PATCH] wifi: ath11k: shrink the WBM link descriptor pool in the 256M profile
+
+The WBM idle link descriptor pool is sized in ath11k_wbm_idle_ring_setup()
+from DP_NUM_CLIENTS_MAX, DP_AVG_MPDUS_PER_TID_MAX and friends, rounded up
+to a power of two. The default constants give 18560 -> 32768 descriptors
+of 128 bytes, i.e. 4 MB of DMA memory per ath11k_base plus a 256 KB
+(512 KB after page-order rounding) WBM idle ring. This pool is not
+covered by the QSDK profiles, which keep 4 MB even at 256M.
+
+In the 256M profile the firmware is limited to 128 peers per radio and
+the RX side holds at most 1024 buffers, so the 128 MPDUs-per-TID budget is
+oversized. Lowering DP_AVG_MPDUS_PER_TID_MAX to 32 gives 8149 -> 8192
+descriptors: 1 MB of pool and a 64 KB idle ring, saving ~3.4 MB per
+radio. DP_NUM_CLIENTS_MAX is left at 64 so that the per-client TX MSDU
+link descriptor budget (which does not depend on the MPDU count) is
+unchanged.
+
+Signed-off-by: HaeImAlan <me@haeimalan.com>
+---
+ drivers/net/wireless/ath/ath11k/dp.h
+
+--- a/drivers/net/wireless/ath/ath11k/dp.h
++++ b/drivers/net/wireless/ath/ath11k/dp.h
+@@ -191,7 +191,15 @@
+ #define DP_NUM_TIDS_MAX (DP_NUM_CLIENTS_MAX * DP_AVG_TIDS_PER_CLIENT)
+ #define DP_AVG_MSDUS_PER_FLOW 128
+ #define DP_AVG_FLOWS_PER_TID 2
++/* Per-TID MPDU budget feeding the WBM link descriptor pool size. 128 gives
++ * a 4 MB pool (32768 descriptors); 32 gives 1 MB (8192 descriptors),
++ * which is plenty for 128 peers and 1024 RX buffers per radio.
++ */
++#if defined(CPTCFG_ATH11K_MEM_PROFILE_256M)
++#define DP_AVG_MPDUS_PER_TID_MAX 32
++#else
+ #define DP_AVG_MPDUS_PER_TID_MAX 128
++#endif
+ #define DP_AVG_MSDUS_PER_MPDU 4
+ 
+ #define DP_RX_HASH_ENABLE	1 /* Enable hash based Rx steering */

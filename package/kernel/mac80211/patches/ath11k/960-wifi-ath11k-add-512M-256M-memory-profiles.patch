@@ -1,0 +1,166 @@
+From: HaeImAlan <me@haeimalan.com>
+Date: Sat, 13 Sep 2026 10:00:00 +0800
+Subject: [PATCH] wifi: ath11k: add 512M/256M memory profiles for the data-path rings
+
+ath11k sizes every data-path ring for a 1 GB router. On a 256 MB
+IPQ5018 board carrying two radios (IPQ5018 + QCN6122, one ath11k_base
+each) that is ~39 MB of host memory per radio at core start, almost all
+of it in fixed-size rings and the receive buffers that pre-fill them:
+
+  RXDMA buffer ring      4096 x ~2.7 KB skb   10.7 MB
+  monitor buffer ring    4096 x ~2.7 KB skb   10.7 MB
+  monitor status ring    1024 x ~2.7 KB skb    2.7 MB
+  TX completion ring     32768 x 32 B          1 MB (2 MB after page-order rounding)
+  TX completion cache    32768 x 32 B          1 MB
+  REO destination rings  4 x 2048 x 64 B     0.5 MB (1 MB after rounding)
+
+Qualcomm's QSDK carries 512M and 256M memory profiles for exactly this
+(CPTCFG_ATH11K_MEM_PROFILE_{512M,256M}, patches 207/601/602 in the
+ipq50xx QSDK tree). Add the same two Kconfig symbols and size the rings
+from them. The 512M and 256M columns use the QSDK values verbatim; in the
+256M column the REO destination/status rings are halved as well (the REO
+destination rings cannot usefully hold more entries than there are RX
+buffers) and the monitor descriptor ring is cut to 512 (it only has to
+cover the 128 monitor buffers).
+
+DP_RXDMA_REFILL_RING_SIZE is deliberately left alone: despite its name it
+is the *byte size of an RX buffer* that ath11k_dp_tx_htt_rx_filter_setup()
+programs into the firmware (HTT_RX_RING_SELECTION_CFG_CMD_INFO1_BUF_SIZE),
+not a ring depth. Shrinking it would tell the firmware the buffers are
+smaller than they are.
+
+ATH11K_SMALLBUFFERS is kept as a (tristate, see the Kconfig help) alias
+that selects the 256M profile so that OpenWrt's kmod-ath11k-smallbuffers
+variant starts to take effect: its -DCONFIG_ATH11K_SMALLBUFFERS define
+travels via EXTRA_CFLAGS, which kbuild no longer honours on 6.18, so the
+variant currently builds the default ring sizes.
+
+Expected saving on IPQ5018/QCN6122 with the 256M profile, per radio:
+RX skbs 10.7 -> 2.7 MB, monitor skbs 13.4 -> 1.7 MB, TX completion 3 ->
+0.2 MB, REO 1.3 -> 0.4 MB; ~24 MB per radio, ~48 MB for two radios.
+
+Signed-off-by: HaeImAlan <me@haeimalan.com>
+---
+ drivers/net/wireless/ath/ath11k/Kconfig
+ local-symbols
+ drivers/net/wireless/ath/ath11k/dp.h
+
+--- a/drivers/net/wireless/ath/ath11k/Kconfig
++++ b/drivers/net/wireless/ath/ath11k/Kconfig
+@@ -69,3 +69,29 @@
+ 	depends on THERMAL
+ 	help
+ 	  Enable ath11k thermal sensors and throttling support.
++
++config ATH11K_MEM_PROFILE_512M
++	bool "ath11k 512 MB memory profile"
++	depends on ATH11K
++	help
++	  Size the ath11k data-path rings for boards with 512 MB of RAM.
++	  Uses the ring depths of Qualcomm's QSDK 512M profile.
++
++config ATH11K_MEM_PROFILE_256M
++	bool "ath11k 256 MB memory profile"
++	depends on ATH11K
++	help
++	  Size the ath11k data-path rings for boards with 256 MB of RAM,
++	  such as dual-radio IPQ5018 designs. Uses the ring depths of
++	  Qualcomm's QSDK 256M profile. Fewer frames in flight per radio
++	  in exchange for roughly 25 MB less host memory per radio.
++
++config ATH11K_SMALLBUFFERS
++	tristate "ath11k small buffers (alias for the 256 MB profile)"
++	depends on ATH11K
++	select ATH11K_MEM_PROFILE_256M
++	help
++	  Compatibility symbol for the kmod-ath11k-smallbuffers package
++	  variant; equivalent to ATH11K_MEM_PROFILE_256M. Tristate because
++	  OpenWrt's config_package helper emits "=m" for variant packages
++	  and kconfig discards "m" for a bool.
+--- a/local-symbols
++++ b/local-symbols
+@@ -164,6 +164,9 @@
+ ATH11K_TRACING=
+ ATH11K_SPECTRAL=
+ ATH11K_THERMAL=
++ATH11K_MEM_PROFILE_512M=
++ATH11K_MEM_PROFILE_256M=
++ATH11K_SMALLBUFFERS=
+ ATH12K=
+ ATH12K_AHB=
+ ATH12K_DEBUG=
+--- a/drivers/net/wireless/ath/ath11k/dp.h
++++ b/drivers/net/wireless/ath/ath11k/dp.h
+@@ -202,28 +202,64 @@
+ #define DP_TCL_NUM_RING_MAX_QCA6390	1
+ 
+ #define DP_IDLE_SCATTER_BUFS_MAX 16
++
++/* Data-path ring depths per memory profile. The default column is the
++ * upstream sizing for 1 GB boards; the 512M and 256M columns follow
++ * Qualcomm's QSDK profiles of the same name. The 256M column
++ * additionally halves the REO destination/status rings (they cannot
++ * usefully hold more entries than there are RX buffers) and trims the
++ * monitor descriptor ring to cover its 128 monitor buffers.
++ */
++#if defined(CPTCFG_ATH11K_MEM_PROFILE_256M)
++#define ATH11K_DP_TX_COMP_RING_SIZE		2048
++#define ATH11K_DP_REO_DST_RING_SIZE		1024
++#define ATH11K_DP_REO_STATUS_RING_SIZE		1024
++#define ATH11K_DP_RXDMA_BUF_RING_SIZE		1024
++#define ATH11K_DP_RXDMA_MON_STATUS_RING_SIZE	512
++#define ATH11K_DP_RXDMA_MONITOR_BUF_RING_SIZE	128
++#define ATH11K_DP_RXDMA_MONITOR_DST_RING_SIZE	128
++#define ATH11K_DP_RXDMA_MONITOR_DESC_RING_SIZE	512
++#elif defined(CPTCFG_ATH11K_MEM_PROFILE_512M)
++#define ATH11K_DP_TX_COMP_RING_SIZE		8192
++#define ATH11K_DP_REO_DST_RING_SIZE		2048
++#define ATH11K_DP_REO_STATUS_RING_SIZE		2048
++#define ATH11K_DP_RXDMA_BUF_RING_SIZE		4096
++#define ATH11K_DP_RXDMA_MON_STATUS_RING_SIZE	512
++#define ATH11K_DP_RXDMA_MONITOR_BUF_RING_SIZE	128
++#define ATH11K_DP_RXDMA_MONITOR_DST_RING_SIZE	128
++#define ATH11K_DP_RXDMA_MONITOR_DESC_RING_SIZE	4096
++#else
++#define ATH11K_DP_TX_COMP_RING_SIZE		32768
++#define ATH11K_DP_REO_DST_RING_SIZE		2048
++#define ATH11K_DP_REO_STATUS_RING_SIZE		2048
++#define ATH11K_DP_RXDMA_BUF_RING_SIZE		4096
++#define ATH11K_DP_RXDMA_MON_STATUS_RING_SIZE	1024
++#define ATH11K_DP_RXDMA_MONITOR_BUF_RING_SIZE	4096
++#define ATH11K_DP_RXDMA_MONITOR_DST_RING_SIZE	2048
++#define ATH11K_DP_RXDMA_MONITOR_DESC_RING_SIZE	4096
++#endif
+ 
+ #define DP_WBM_RELEASE_RING_SIZE	64
+ #define DP_TCL_DATA_RING_SIZE		512
+ #define DP_TCL_DATA_RING_SIZE_WCN6750	2048
+-#define DP_TX_COMP_RING_SIZE		32768
++#define DP_TX_COMP_RING_SIZE		ATH11K_DP_TX_COMP_RING_SIZE
+ #define DP_TX_IDR_SIZE			DP_TX_COMP_RING_SIZE
+ #define DP_TCL_CMD_RING_SIZE		32
+ #define DP_TCL_STATUS_RING_SIZE		32
+ #define DP_REO_DST_RING_MAX		4
+-#define DP_REO_DST_RING_SIZE		2048
++#define DP_REO_DST_RING_SIZE		ATH11K_DP_REO_DST_RING_SIZE
+ #define DP_REO_REINJECT_RING_SIZE	32
+ #define DP_RX_RELEASE_RING_SIZE		1024
+ #define DP_REO_EXCEPTION_RING_SIZE	128
+ #define DP_REO_CMD_RING_SIZE		256
+-#define DP_REO_STATUS_RING_SIZE		2048
+-#define DP_RXDMA_BUF_RING_SIZE		4096
++#define DP_REO_STATUS_RING_SIZE		ATH11K_DP_REO_STATUS_RING_SIZE
++#define DP_RXDMA_BUF_RING_SIZE		ATH11K_DP_RXDMA_BUF_RING_SIZE
+ #define DP_RXDMA_REFILL_RING_SIZE	2048
+ #define DP_RXDMA_ERR_DST_RING_SIZE	1024
+-#define DP_RXDMA_MON_STATUS_RING_SIZE	1024
+-#define DP_RXDMA_MONITOR_BUF_RING_SIZE	4096
+-#define DP_RXDMA_MONITOR_DST_RING_SIZE	2048
+-#define DP_RXDMA_MONITOR_DESC_RING_SIZE	4096
++#define DP_RXDMA_MON_STATUS_RING_SIZE	ATH11K_DP_RXDMA_MON_STATUS_RING_SIZE
++#define DP_RXDMA_MONITOR_BUF_RING_SIZE	ATH11K_DP_RXDMA_MONITOR_BUF_RING_SIZE
++#define DP_RXDMA_MONITOR_DST_RING_SIZE	ATH11K_DP_RXDMA_MONITOR_DST_RING_SIZE
++#define DP_RXDMA_MONITOR_DESC_RING_SIZE	ATH11K_DP_RXDMA_MONITOR_DESC_RING_SIZE
+ 
+ #define DP_RX_RELEASE_RING_NUM	3
+ 
